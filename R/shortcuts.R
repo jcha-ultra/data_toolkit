@@ -7,7 +7,7 @@ find_names_in_zip <- function(zip_file, pattern, ...) {
     return(filtered_names)
 }
 
-# check for 2-way inclusion
+# check for 2-way string inclusion
 str_includes_2_way <- function(x, y) grepl(x, y) || grepl(y, x)
 
 # return fuzzy version of base R `intersect` with user-supplied equality operator, which can be used to generate equivalent versions for `setdiff` and `setequal`. Do NOT use for performance over large sets, as it is O(n^2)
@@ -17,4 +17,4 @@ fuzzy_intersect <- function(a, b, eq) {
   a_and_b <- a[purrr::map_lgl(a, x_in_b)]
   return(a_and_b)
 }
-test <- fuzzy_intersect(c("blah", "blah2", "b", "d"), c("blah1", "blah3", "a", "c"), str_includes_2_way) # [1] "blah"  "blah2" "b"
+# test <- fuzzy_intersect(c("blah", "blah2", "b", "d"), c("blah1", "blah3", "a", "c"), str_includes_2_way) # [1] "blah"  "blah2" "b"
