@@ -51,4 +51,21 @@ training_data_cleaned <- subset(training_data, select = -c(PassengerId, Name))
 
 ```
 
+## Encoding
+
+Encode categorical variables into numerical ones so that they're usable by models. I decided to use target encoding due to its simplicity, so that I can understand what's happening.
+
+```{r}
+
+# encode Sex column
+training_data_encoded <- training_data_cleaned
+training_data_encoded$Sex <- purrr::map_int(training_data_cleaned$Sex, function(x) if(x == "male") 1L else 0L)
+
+# target encoding
+encoded_cols <- c("Ticket", "Cabin", "Embarked")
+encoding <- build_target_encoding(training_data_encoded, cols_to_encode = encoded_cols, target_col = "Survived")
+training_data_encoded <- target_encode(training_data_encoded, target_encoding = encoding) %>% select(!all_of(encoded_cols))
+
 ```
+
+I am rather skeptical as to how much `Ticket` and `Cabin` really contribute to the prediction, but perhaps we can do an analysis with and without them.
