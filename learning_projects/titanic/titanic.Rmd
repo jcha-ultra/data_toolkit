@@ -2,6 +2,9 @@
 ```{r libs}
 
 library(caret)
+library(dataPreparation)
+library(magrittr)
+library(dplyr)
 
 ```
 
