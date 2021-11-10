@@ -1,0 +1,46 @@
+
+```{r libs}
+
+library(caret)
+
+```
+
+```{r ingest}
+
+path <- "~/repos/toolkit/datasets/titanic/train.csv"
+training_data <- read.csv(path)
+
+```
+
+## Introduction
+
+This is a learning project for the author to get acquainted with the basics of machine learning. As such, it is likely to contain mistakes, so please be aware of that if you intende to use this as a reference.
+
+## Examination
+
+Check the data to see if any data quality red flags stick out. The source of the data is from the Titanic ML competition in Kaggle: https://www.kaggle.com/c/titanic/data
+
+```{r examination}
+
+summary(training_data)
+pointblank::scan_data(training_data)
+
+```
+
+Examination Notes:
+* didn't see any "bad" data (e.g. negative ages)
+* `PassengerId` is just an identifier added by Kaggle can be discarded in the analysis
+* only missing data appears to be age
+* encoding required: `PassengerId`, `Name`, `Ticket`, `Cabin`, `Embarked`
+* some dimensional reduction is likely warranted; some of the character columns may not be predictive
+* the only clear correlation is between `Pclass` and `Fare`, which are negatively correlated; they're also mildly correlated with `Survival`, the target variable, as expected
+
+## Cleaning
+
+Clean out parts of the data that may cause problems for the model.
+
+```{r cleaning}
+
+# empty for now; cleanings will be added as needed
+
+```
