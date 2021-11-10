@@ -17,7 +17,7 @@ training_data <- read.csv(path)
 
 ## Introduction
 
-This is a learning project for the author to get acquainted with the basics of machine learning. As such, it is likely to contain mistakes, so please be aware of that if you intende to use this as a reference.
+This is a learning project for me to get acquainted with the basics of machine learning. As such, it is likely to contain mistakes, so please be aware of that if you intende to use this as a reference.
 
 ## Examination
 
@@ -31,12 +31,15 @@ pointblank::scan_data(training_data)
 ```
 
 Examination Notes:
-* didn't see any "bad" data (e.g. negative ages)
-* `PassengerId` is just an identifier added by Kaggle can be discarded in the analysis
-* only missing data appears to be age
-* encoding required: `PassengerId`, `Name`, `Ticket`, `Cabin`, `Embarked`
+* encoding required: `Ticket`, `Cabin`, `Embarked`
 * some dimensional reduction is likely warranted; some of the character columns may not be predictive
-* the only clear correlation is between `Pclass` and `Fare`, which are negatively correlated; they're also mildly correlated with `Survival`, the target variable, as expected
+* the only clear correlation is between `Pclass` and `Fare`, which are negatively correlated; they're also mildly correlated with `Survived`, the target variable, as expected
+* `PassengerId` is just a unique identifier added by Kaggle can be dropped; `Name` is also unique and won't add value to prediction
+* only missing data appears to be in `Age` and `Cabin`
+* `Cabin` is super sparse and might not be that useful; consider dropping
+* `Cabin` also has some values that are concatenations of multiple cabin numbers; may consider tokenizing these into different columns, or maybe converting to a "num_cabins" variable, but the column is so sparse it might not be worth it
+* `Cabin` _also_ has some single-letter values that may need to be cleaned
+* `Ticket` has high cardinality, with apparently arbitrary values and might not add much to prediction; consider dropping
 
 ## Cleaning
 
