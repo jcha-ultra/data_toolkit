@@ -47,6 +47,8 @@ Clean out parts of the data that may cause problems for the model.
 
 ```{r cleaning}
 
-# empty for now; cleanings will be added as needed
+training_data_cleaned <- subset(training_data, select = -c(PassengerId, Name))
+
+```
 
 ```
