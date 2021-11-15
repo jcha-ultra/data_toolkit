@@ -119,16 +119,16 @@ print(training_data_pca)
 
 ### Speculation: Principal Component Group Interpretation
 
-Mostly for fun, I will now perform some very speculative interpretation of the characteristics represented by the principal components, by seeing if I can convert each one into a representation of a group, up to PC7 (the 90% variance threshold). I don't have hard evidence backing these interpretations, so it'll just be based on intuition—don't take these too seriously. Note that some of these groups might have 2 separate interpretations based on whether we are going in the positive or negative direction of the vector, but I tried to pick the one that made the most conceptual sense to me.
+Mostly for fun, I will now perform some highly speculative interpretation of the characteristics represented by the principal components, by seeing if I can convert each one into a representation of a group, up to PC7 (the 90% variance threshold). I don't have hard evidence backing these interpretations, so it'll just be based on intuition—don't take these too seriously. Note that some of these groups might have 2 separate interpretations based on whether we are going in the positive or negative direction of the vector, but I tried to pick the one that made the most conceptual sense to me.
 
 * `PC1`: these appear to be females with high-class tickets; out of all groups, these have the highest `Survived` coefficients; which does make sense in light of `PC3`
-* `PC2`: older single males with high class tickets; no significant survival coefficient. Oddly enough these do not have a corresponding `Fare` coefficient to match the ticket class; not sure what's happening there
+* `PC2`: older single males with high class tickets; no significant survival coefficient.
+    + oddly enough these do not have a corresponding `Fare` coefficient to match the ticket class; not sure what's happening there, and may warrant further investigation
 * `PC3`: adult males with high-class tickets that are part of a family; these have the lowest of the `Survived` coefficients out of all groups
+    + it isn't clear why this is without digging further into the data, but speculating wildly, perhaps families with higher class tickets were also larger, and perhaps it's just less likely to for a big family to be able to get all its members on a life raft, and culture mores made it more likely for the adult male member to stay behind
+    + it might be useful to calculate some sort of "family size" variable and see how well that correlates with survival
 * `PC4`: older (or younger?) people that embarked in a particular location; perhaps some sort of travel group? No significant survival coefficient
 * `PC5`: young males who didn't come with their parents; no significant survival coefficient
 * `PC6`: older couples without children, on cheap fare; no significant survival coefficient
-* `PC7`: women without children who came with sibling or spouse; no significant survival coefficient; given the strong `Sex` coefficient, my guess is that this is picking up some number of sisters going on the cruise together (male siblings and spouses should weaken the `Sex` coefficient, all else being equal)
-
-### Speculation: Additional Observations
-
-[TBD]
+* `PC7`: women without children who came with sibling or spouse; no significant survival coefficient
+    + given the strong `Sex` coefficient, my guess is that this is picking up some number of sisters going on the cruise together (male siblings and spouses should weaken the `Sex` coefficient, all else being equal)
