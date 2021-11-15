@@ -55,7 +55,7 @@ training_data_cleaned <- subset(training_data, select = -c(PassengerId, Name))
 
 Encode categorical variables into numerical ones so that they're usable by models. I decided to use target encoding due to its simplicity, so that I can understand what's happening.
 
-```{r}
+```{r encoding}
 
 # encode Sex column
 training_data_encoded <- training_data_cleaned
@@ -69,3 +69,23 @@ training_data_encoded <- target_encode(training_data_encoded, target_encoding = 
 ```
 
 I am rather skeptical as to how much `Ticket` and `Cabin` really contribute to the prediction, but perhaps we can do an analysis with and without them.
+
+Another thing to note is that the blank (really NA) values of `Cabin` also got encoded; it's not clear to me whether that should have happened or not—I think that depends whether we're interpreting the NA values as meaningful or not... but `Cabin` itself is kind of meaningless, so it's all very muddy.
+
+## Imputation
+
+This is where we fill in NA values. I decided to use mean imputation, again for simplicity so that I can see what's happening. My understanding is that in a "real" project, single imputation is usually not a good idea.
+
+```{r imputation}
+
+col_to_impute <- "Age"
+
+impute_by_mean <- function(df, col_name) {
+  df[[col_name]][is.na(df[[col_name]])] <- mean(df[[col_name]], na.rm=TRUE)
+  return(df[[col_name]])
+}
+
+training_data_imputed <- training_data_encoded
+training_data_imputed[[col_to_impute]] <- impute_by_mean(training_data_encoded, col_to_impute)
+
+```
