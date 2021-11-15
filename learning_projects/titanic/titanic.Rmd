@@ -87,7 +87,6 @@ impute_by_mean <- function(df, col_name) {
 
 training_data_imputed <- training_data_encoded
 training_data_imputed[[col_to_impute]] <- impute_by_mean(training_data_encoded, col_to_impute)
-
 ```
 
 ## Dimensional Reduction
@@ -100,3 +99,36 @@ I'm also hoping to get some other things out of this:
    1b. `Fare` and `Pclass` will be squished together into a single component since they're so highly correlated
    1c. most of the explanatory power will be in `Fare/Pclass`, `Sex`, and `Age`, i.e. being higher class fare, female, and young will largely explain your survive or not, to the extent that survival is predictable in the data
 2. get a good sense of what the principal components are and what they mean, conceptually
+
+```{r dim_reduction_pca}
+
+training_data_pca <- prcomp(training_data_imputed, center = TRUE,scale. = TRUE)
+summary(training_data_pca)
+print(training_data_pca)
+
+```
+
+### Prediction Results
+* 1a. This is hard to tell from PCA and will have to wait until we train the model; certainly there are some relatively high coefficients in the components for those two variables, but that could happen in either case just as a part of the mathematics. I am encouraged that, at least up to PC7, there don't seem to be any components solely based on one or both of those variables, though.
+* 1b. Largely borne out—almost all of the components up to PC7 that have high absolute values of `Pclass` or `Fare` coefficients will have a corresponding coefficient in the other variable of the opposite sign. However, there are caveats:
+    + even when the signs are opposite, the actual magnitudes don't always match; e.g. PC6 has -0.16 coupled with 0.41; this might just be an artifact of how the components broke out, since we know the correlation isn't perfect
+    + PC2 has a pretty negative `Pclass` coefficient but a `Fare` coefficient of almost 0, which seems odd and warrants further investigation
+* 1c. The first two are corroborated somewhat by PC1 and PC3, but:
+    + for `Pclass/Fare`, it's not as straightforward as "people with better tickets survive better"; instead it seems to specifically be _females_ with better tickets who survived well. Males with better tickets actually have a pretty negative survival coefficient. See below for more thoughts on that
+    + the principal components don't reveal much about the relationship between `Age` and survival. In fact, there's no component that might represent a group concept of "children who survived"; upon reflection, this does make sense, because it seems quite likely that if you're going to allow a child into a life raft, you'd probably also allow at least one other person who is in their family that's older, which muddies the data and makes it hard for PCA to pick out that specific subgroup
+
+### Speculation: Principal Component Group Interpretation
+
+Mostly for fun, I will now perform some very speculative interpretation of the characteristics represented by the principal components, by seeing if I can convert each one into a representation of a group, up to PC7 (the 90% variance threshold). I don't have hard evidence backing these interpretations, so it'll just be based on intuition—don't take these too seriously. Note that some of these groups might have 2 separate interpretations based on whether we are going in the positive or negative direction of the vector, but I tried to pick the one that made the most conceptual sense to me.
+
+* `PC1`: these appear to be females with high-class tickets; out of all groups, these have the highest `Survived` coefficients; which does make sense in light of `PC3`
+* `PC2`: older single males with high class tickets; no significant survival coefficient. Oddly enough these do not have a corresponding `Fare` coefficient to match the ticket class; not sure what's happening there
+* `PC3`: adult males with high-class tickets that are part of a family; these have the lowest of the `Survived` coefficients out of all groups
+* `PC4`: older (or younger?) people that embarked in a particular location; perhaps some sort of travel group? No significant survival coefficient
+* `PC5`: young males who didn't come with their parents; no significant survival coefficient
+* `PC6`: older couples without children, on cheap fare; no significant survival coefficient
+* `PC7`: women without children who came with sibling or spouse; no significant survival coefficient; given the strong `Sex` coefficient, my guess is that this is picking up some number of sisters going on the cruise together (male siblings and spouses should weaken the `Sex` coefficient, all else being equal)
+
+### Speculation: Additional Observations
+
+[TBD]
