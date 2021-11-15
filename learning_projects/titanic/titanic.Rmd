@@ -89,3 +89,14 @@ training_data_imputed <- training_data_encoded
 training_data_imputed[[col_to_impute]] <- impute_by_mean(training_data_encoded, col_to_impute)
 
 ```
+
+## Dimensional Reduction
+
+Try to perform dimensional reduction on the columns via PCA. One of the benefits of this is that it should reduce the chances of overfitting a model. This might not be necessary since I'll be doing cross-validation later on and in theory that should result in a model that doesn't overfit.
+
+I'm also hoping to get some other things out of this:
+1. confirm some predictions of mine:
+   1a. `Cabin` and `Ticket` are just noise and don't add much to the predictive power of the data
+   1b. `Fare` and `Pclass` will be squished together into a single component since they're so highly correlated
+   1c. most of the explanatory power will be in `Fare/Pclass`, `Sex`, and `Age`, i.e. being higher class fare, female, and young will largely explain your survive or not, to the extent that survival is predictable in the data
+2. get a good sense of what the principal components are and what they mean, conceptually
