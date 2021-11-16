@@ -134,3 +134,31 @@ Mostly for fun, I will now perform some highly speculative interpretation of the
 * `PC6`: older couples without children, on cheap fare; no significant survival coefficient
 * `PC7`: women without children who came with sibling or spouse; no significant survival coefficient
     + given the strong `Sex` coefficient, my guess is that this is picking up some number of sisters going on the cruise together (male siblings and spouses should weaken the `Sex` coefficient, all else being equal)
+
+## Model Training: KNN
+
+Here we'll train the actual model, which I've arbitrarily chosen to be KNN. 
+
+I'm actually going to try this first without any PCA transformation—I certainly gleaned some interesting results from looking at the basis vectors but want to see what happens by default without any transformations first.
+
+```{r knn_training}
+
+train_titanic_model <- function(training_df) {
+  # create prediction
+  training_ctrl <- trainControl(method = "cv", number = 10)
+  fit <- train(Survived ~ ., data = training_df, method = "knn", trControl=training_ctrl, preProcess = c("center", "scale"), tuneLength = 15)
+  return(fit)
+}
+
+training_df <- training_data_imputed
+prediction <- predict(train_titanic_model(training_df), newdata = training_df)
+
+# examine prediction performance
+print(confusionMatrix(prediction, training_df$Survived))
+
+```
+
+So at first glance the results seem rather alarming. On the training data, the model is **98%** accurate. That seems astoundingly high for real data, given that I basically made random choices at each step of the training process, so I'm quite suspicious that we've overfitted here, with the high-cardinality, low-meaning variables `Cabin` and `Ticket` being the prime suspects.
+
+Another thing I realized is that `Cabin` and `Ticket` have additional levels in the testing set that aren't in the training set, which makes the current encoding technique for those columns completely untenable; surely there must be ways to extract some information from these, but given my previous concerns about the lack of meaningful information here I'm simply going to drop these, and redo the training.
+
