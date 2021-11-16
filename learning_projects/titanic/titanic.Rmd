@@ -178,3 +178,33 @@ Somewhat encouragingly, dropping those two variables reduced the accuracy to a l
 
 I'll note here that I had expected cross-validation to deal with the overfitting issue; evidently that was not true in this case.
 
+## Model Testing
+
+Here we will prepare the testing data the same way that we did the training data, albeit streamlined.
+
+```{r testing_data_prep}
+
+testing_data <- read.csv("~/repos/toolkit/datasets/titanic/test.csv")
+
+testing_data_prepped <- subset(testing_data, select = -c(PassengerId, Name, Ticket, Cabin))
+testing_data_prepped$Sex <- encode_sex(testing_data_prepped$Sex)
+
+encoding_map <- data.frame(Embarked = training_data$Embarked, Survived_mean_by_Embarked = training_data_encoded$Survived_mean_by_Embarked) %>% unique()
+testing_data_prepped$Survived_mean_by_Embarked <- purrr::map_dbl(testing_data_prepped$Embarked, function(emb_val) encoding_map$Survived_mean_by_Embarked[[which(encoding_map$Embarked == emb_val)]])
+testing_data_prepped$Age <- impute_by_mean(testing_data_prepped, "Age")
+testing_data_prepped$Fare <- impute_by_mean(testing_data_prepped, "Fare") # new; no NAs in training data
+
+```
+
+Running the actual test:
+
+```{r testing_data_prediction}
+
+prediction <- predict(fit, newdata = testing_data_prepped)
+prediction_df <- data.frame(PassengerId = testing_data$PassengerId, Survived = prediction)
+
+```
+
+## Model Testing Results
+
+The next step is to submit to Kaggle. While this is clearly not going to score high on the leaderboard, the hope here is that the model works about as well on the testing data as it did in the training data (~84%), which at least indicates that it's robust.
