@@ -209,3 +209,11 @@ prediction_df <- data.frame(PassengerId = testing_data$PassengerId, Survived = p
 ## Model Testing Results
 
 The next step is to submit to Kaggle. While this is clearly not going to score high on the leaderboard, the hope here is that the model works about as well on the testing data as it did in the training data (~84%), which at least indicates that it's robust.
+
+```{r save_prediction}
+
+write.csv(prediction_df, "~/toolkit/learning_projects/titanic/titanic_prediction.csv", row.names = FALSE)
+
+```
+
+[Update] After submitting the results, the success rate turned out to be 77.99%, which is... actually not terrible; the error rate difference is 6%, which intuitively seems okay as far as robustness goes. In terms of performance on the leaderboards, it's within the top quartile, which again is not bad for such a simple approach.
