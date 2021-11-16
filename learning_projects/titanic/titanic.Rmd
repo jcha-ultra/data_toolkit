@@ -58,8 +58,10 @@ Encode categorical variables into numerical ones so that they're usable by model
 ```{r encoding}
 
 # encode Sex column
+encode_sex <- function(coldata) purrr::map_int(coldata, function(x) if(x == "male") 1L else 0L)
 training_data_encoded <- training_data_cleaned
-training_data_encoded$Sex <- purrr::map_int(training_data_cleaned$Sex, function(x) if(x == "male") 1L else 0L)
+# training_data_encoded$Sex <- purrr::map_int(training_data_cleaned$Sex, function(x) if(x == "male") 1L else 0L)
+training_data_encoded$Sex <- encode_sex(training_data_cleaned$Sex)
 
 # target encoding
 encoded_cols <- c("Ticket", "Cabin", "Embarked")
