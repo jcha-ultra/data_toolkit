@@ -48,6 +48,7 @@ Clean out parts of the data that may cause problems for the model.
 ```{r cleaning}
 
 training_data_cleaned <- subset(training_data, select = -c(PassengerId, Name))
+training_data_cleaned[["Survived"]] <- as.factor(training_data_cleaned[["Survived"]])
 
 ```
 
