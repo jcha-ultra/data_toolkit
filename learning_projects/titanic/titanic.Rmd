@@ -162,3 +162,19 @@ So at first glance the results seem rather alarming. On the training data, the m
 
 Another thing I realized is that `Cabin` and `Ticket` have additional levels in the testing set that aren't in the training set, which makes the current encoding technique for those columns completely untenable; surely there must be ways to extract some information from these, but given my previous concerns about the lack of meaningful information here I'm simply going to drop these, and redo the training.
 
+## Model Training: KNN (w/o `Cabin` and `Ticket`)
+
+```{r}
+
+training_df <- subset(training_data_imputed, select = -c(Survived_mean_by_Ticket, Survived_mean_by_Cabin))
+prediction <- predict(train_titanic_model(training_df), newdata = training_df)
+
+# examine prediction performance
+print(confusionMatrix(prediction, training_df$Survived))
+
+```
+
+Somewhat encouragingly, dropping those two variables reduced the accuracy to a level that seems more consistent with the minimal model we've developed here, which lends credence to the idea that those two columns were causing overfitting.
+
+I'll note here that I had expected cross-validation to deal with the overfitting issue; evidently that was not true in this case.
+
