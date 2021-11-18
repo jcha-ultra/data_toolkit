@@ -3,6 +3,7 @@ flag_missing <- function(coldata) {
   badvals <- c(
     "n/a",
     "na",
+    "not applicable",
     "not available",
     "incomplete",
     "unknown",
