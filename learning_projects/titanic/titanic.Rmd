@@ -217,3 +217,15 @@ write.csv(prediction_df, "~/toolkit/learning_projects/titanic/titanic_prediction
 ```
 
 [Update] After submitting the results, the success rate turned out to be 77.99%, which is... actually not terrible; the error rate difference is 6%, which intuitively seems okay as far as robustness goes. In terms of performance on the leaderboards, it's within the top quartile, which again is not bad for such a simple approach.
+
+## Thoughts
+
+The following are thoughts on what I've learned from the project so far. As with the other parts of this document, take these with a grain of salt, since there is a great deal about this topic that I don't know about yet.
+
+* Overfitting really is a big problem that seems to pop up really easily.
+* When cleaning the data, it's important to check for values that might code for missing data but wasn't recognized as such by the data package, such as blank strings, and clean those into the appropriate representation in the data. I forgot to do this so ended up thinking initially that there was very little data missing when I was looking at the summary of the data
+* PCA is as great as I thought it would be, even if reading the components can get a little messy. Personally, I find it kind of magical, even though I know how it works mechanically and on a conceptual level it's incredibly simple.
+* High-cardinality categorical variables are tricky:
+    + they are rather difficult to encode, since there may be values in the test (or indeed real-world) datasets that don't occur in the training dataset; that seems like it could lead to brittle models that get completely flummoxed with input from real data they haven't seen before
+    + they seem to easily lead to overfitting; I'm guessing this has something to do with there not being enough observations for some values, which could lead to models picking up coincidental relationships in small samples
+    + besides just dropping these variables, it might be possible to extract some sort of numerical information from them and use that as a predictor
