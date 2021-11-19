@@ -47,8 +47,13 @@ Clean out parts of the data that may cause problems for the model.
 
 ```{r cleaning}
 
-training_data_cleaned <- subset(training_data, select = -c(PassengerId, Name))
-training_data_cleaned[["Survived"]] <- as.factor(training_data_cleaned[["Survived"]])
+clean_titanic_data <- function(df) {
+  training_data_cleaned <- subset(df, select = -c(PassengerId, Name))
+  training_data_cleaned[["Survived"]] <- as.factor(training_data_cleaned[["Survived"]])
+  return(training_data_cleaned)
+}
+
+training_data_cleaned <- clean_titanic_data(training_data)
 
 ```
 
@@ -60,14 +65,24 @@ Encode categorical variables into numerical ones so that they're usable by model
 
 # encode Sex column
 encode_sex <- function(coldata) purrr::map_int(coldata, function(x) if(x == "male") 1L else 0L)
-training_data_encoded <- training_data_cleaned
-# training_data_encoded$Sex <- purrr::map_int(training_data_cleaned$Sex, function(x) if(x == "male") 1L else 0L)
-training_data_encoded$Sex <- encode_sex(training_data_cleaned$Sex)
 
-# target encoding
-encoded_cols <- c("Ticket", "Cabin", "Embarked")
-encoding <- build_target_encoding(training_data_encoded, cols_to_encode = encoded_cols, target_col = "Survived")
-training_data_encoded <- target_encode(training_data_encoded, target_encoding = encoding) %>% select(!all_of(encoded_cols))
+encode_titanic_data <- function(df) {
+  training_data_encoded <- df
+  training_data_encoded$Sex <- encode_sex(df$Sex)
+  
+  # training_data_encoded$Survived <- as.integer(as.character(training_data_encoded$Survived))
+  
+  # target encoding
+  encoded_cols <- c("Ticket", "Cabin", "Embarked")
+  encoding <- training_data_encoded %>% 
+    mutate(Survived = as.integer(as.character(Survived))) %>% 
+    build_target_encoding(cols_to_encode = encoded_cols, target_col = "Survived")
+  training_data_encoded <- target_encode(training_data_encoded, target_encoding = encoding) %>% select(!all_of(encoded_cols))
+  
+  return(training_data_encoded)
+}
+
+training_data_encoded <- encode_titanic_data(training_data_cleaned)
 
 ```
 
@@ -81,15 +96,20 @@ This is where we fill in NA values. I decided to use mean imputation, again for 
 
 ```{r imputation}
 
-col_to_impute <- "Age"
 
 impute_by_mean <- function(df, col_name) {
   df[[col_name]][is.na(df[[col_name]])] <- mean(df[[col_name]], na.rm=TRUE)
   return(df[[col_name]])
 }
 
-training_data_imputed <- training_data_encoded
-training_data_imputed[[col_to_impute]] <- impute_by_mean(training_data_encoded, col_to_impute)
+impute_titanic_data <- function(df) {
+  col_to_impute <- "Age"
+  training_data_imputed <- training_data_encoded
+  training_data_imputed[[col_to_impute]] <- impute_by_mean(training_data_encoded, col_to_impute)
+  return(training_data_imputed)
+}
+
+training_data_imputed <- impute_titanic_data(training_data_encoded)
 ```
 
 ## Dimensional Reduction
@@ -144,18 +164,26 @@ I'm actually going to try this first without any PCA transformation—I certainl
 
 ```{r knn_training}
 
-train_titanic_model <- function(training_df) {
+train_titanic_model <- function(training_df, seed = NULL) {
+  if (!is.null(seed)) set.seed(seed)
   # create prediction
   training_ctrl <- trainControl(method = "cv", number = 10)
   fit <- train(Survived ~ ., data = training_df, method = "knn", trControl=training_ctrl, preProcess = c("center", "scale"), tuneLength = 15)
   return(fit)
 }
 
-training_df <- training_data_imputed
-prediction <- predict(train_titanic_model(training_df), newdata = training_df)
+predict_titanic <- function(training_df, test_df, seed = NULL) {
+  prediction <- predict(train_titanic_model(training_df), newdata = test_df)
+  # temp1.1 <<- training_df # debug
+  # temp1 <<- train_titanic_model(training_df, seed) # debug
+  
+  # examine prediction performance
+  # print(test_df$Survived)
+  if(!is.null(test_df[["Survived"]])) print(confusionMatrix(prediction, test_df[["Survived"]]))
+  return(prediction)
+}
 
-# examine prediction performance
-print(confusionMatrix(prediction, training_df$Survived))
+predicted_Survived_training <- predict_titanic(training_data_imputed, training_data_imputed, seed = 3000)
 
 ```
 
@@ -168,10 +196,8 @@ Another thing I realized is that `Cabin` and `Ticket` have additional levels in 
 ```{r}
 
 training_df <- subset(training_data_imputed, select = -c(Survived_mean_by_Ticket, Survived_mean_by_Cabin))
-prediction <- predict(train_titanic_model(training_df), newdata = training_df)
 
-# examine prediction performance
-print(confusionMatrix(prediction, training_df$Survived))
+predicted_Survived_training <- predict_titanic(training_df, training_df)
 
 ```
 
@@ -201,8 +227,11 @@ Running the actual test:
 
 ```{r testing_data_prediction}
 
-prediction <- predict(fit, newdata = testing_data_prepped)
-prediction_df <- data.frame(PassengerId = testing_data$PassengerId, Survived = prediction)
+predicted_Survived_testing <- predict_titanic(training_df, testing_data_prepped)
+prediction_df <- data.frame(PassengerId = testing_data$PassengerId, Survived = predicted_Survived_testing)
+
+# prediction <- predict(train_titanic_model(training_df), newdata = testing_data_prepped)
+# prediction_df <- data.frame(PassengerId = testing_d/zata$PassengerId, Survived = prediction)
 
 ```
 
@@ -212,7 +241,7 @@ The next step is to submit to Kaggle. While this is clearly not going to score h
 
 ```{r save_prediction}
 
-write.csv(prediction_df, "~/toolkit/learning_projects/titanic/titanic_prediction.csv", row.names = FALSE)
+write.csv(prediction_df, "~/repos/toolkit/learning_projects/titanic/titanic_prediction_2.csv", row.names = FALSE)
 
 ```
 
