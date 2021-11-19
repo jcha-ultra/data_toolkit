@@ -218,6 +218,19 @@ write.csv(prediction_df, "~/toolkit/learning_projects/titanic/titanic_prediction
 
 [Update] After submitting the results, the success rate turned out to be 77.99%, which is... actually not terrible; the error rate difference is 6%, which intuitively seems okay as far as robustness goes. In terms of performance on the leaderboards, it's within the top quartile, which again is not bad for such a simple approach.
 
+## Model Tweaking Ideas
+
+Now that we know the performance of the initial version of the trained model is, it will be interesting to see what happens when we tweak the training process. I'll list the ideas I have so far below and try them out. Given that the model performs fairly well already, I expect that most of these won't result in significant better performance, or indeed even decrease performance, but in any case they should be informative.
+
+* perform pca transform on data before training the model
+* calculate "family size" and add it as a predictor
+* use one hot encoding instead of target encoding
+* try bayesian target encoding
+* use multiple imputation instead of mean imputation
+* extract some information from `Cabin` and `Ticket` columns and use that as predictors
+* try repeated cross validation
+* try a different model that's not knn
+
 ## Thoughts
 
 The following are thoughts on what I've learned from the project so far. As with the other parts of this document, take these with a grain of salt, since there is a great deal about this topic that I don't know about yet.
