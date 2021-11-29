@@ -355,7 +355,7 @@ write_titanic_prediction <- function(prediction, name) {
 write_titanic_prediction(predicted_Survived_testing, "titanic_prediction_pca.csv")
 ```
 
-Submitting the results to Kaggle, it appears that the predictive ability has now improved to 0.78947, which is about 1% better than before. Not as high as I'd hoped, but at least it's not lower. Apparently, this 1% increase was enough to jump to within the 10th percentile (1306) on the leaderboards, which doesn't give me much confidence in the leaderboards—I'm assuming there's a morass of predictions that in the 78-79% range.
+Submitting the results to Kaggle, it appears that the predictive ability has now improved to 0.78947, which is about 1% better than before. Not as high as I'd hoped, but at least it's not lower. Apparently, this 1% increase was enough to jump to within the 10th percentile (1306) on the leaderboard, which doesn't give me much confidence in how informative the leaderboard is—I'm assuming there's a morass of predictions in the 78-79% range.
 
 Regardless, the robustness is now all the way up to -3.5%, from -7%, which seems quite good for a relatively simple transformation.
 
