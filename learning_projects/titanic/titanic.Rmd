@@ -216,12 +216,12 @@ Here we will prepare the testing data the same way that we did the training data
 testing_data <- read.csv("~/repos/toolkit/datasets/titanic/test.csv")
 
 prep_testing_data <- function() {
-testing_data_prepped <- subset(testing_data, select = -c(PassengerId, Name, Ticket, Cabin))
-testing_data_prepped$Sex <- encode_sex(testing_data_prepped$Sex)
-encoding_map <- data.frame(Embarked = training_data$Embarked, Survived_mean_by_Embarked = training_data_encoded$Survived_mean_by_Embarked) %>% unique()
-testing_data_prepped$Survived_mean_by_Embarked <- purrr::map_dbl(testing_data_prepped$Embarked, function(emb_val) encoding_map$Survived_mean_by_Embarked[[which(encoding_map$Embarked == emb_val)]])
-testing_data_prepped$Age <- impute_by_mean(testing_data_prepped, "Age")
-testing_data_prepped$Fare <- impute_by_mean(testing_data_prepped, "Fare") # new; no NAs in training data
+  testing_data_prepped <- subset(testing_data, select = -c(PassengerId, Name, Ticket, Cabin))
+  testing_data_prepped$Sex <- encode_sex(testing_data_prepped$Sex)
+  encoding_map <- data.frame(Embarked = training_data$Embarked, Survived_mean_by_Embarked = training_data_encoded$Survived_mean_by_Embarked) %>% unique()
+  testing_data_prepped$Survived_mean_by_Embarked <- purrr::map_dbl(testing_data_prepped$Embarked, function(emb_val) encoding_map$Survived_mean_by_Embarked[[which(encoding_map$Embarked == emb_val)]])
+  testing_data_prepped$Age <- impute_by_mean(testing_data_prepped, "Age")
+  testing_data_prepped$Fare <- impute_by_mean(testing_data_prepped, "Fare") # new; no NAs in training data
   return(testing_data_prepped)
 }
 testing_data_prepped <- prep_testing_data()
