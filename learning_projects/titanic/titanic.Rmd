@@ -49,10 +49,11 @@ Clean out parts of the data that may cause problems for the model.
 
 ```{r cleaning}
 
-clean_titanic_data <- function(df) {
-  training_data_cleaned <- subset(df, select = -c(PassengerId, Name))
-  training_data_cleaned[["Survived"]] <- as.factor(training_data_cleaned[["Survived"]])
-  return(training_data_cleaned)
+clean_titanic_data <- function(df, has_Survived_col = TRUE) {
+  data_cleaned <- subset(df, select = -c(PassengerId, Name))
+  if (has_Survived_col)
+    data_cleaned[["Survived"]] <- as.factor(data_cleaned[["Survived"]])
+  return(data_cleaned)
 }
 
 training_data_cleaned <- clean_titanic_data(training_data)
