@@ -13,6 +13,7 @@ pacman::p_load(caret, dataPreparation, magrittr, dplyr)
 
 path <- "~/repos/toolkit/datasets/titanic/train.csv"
 training_data <- read.csv(path)
+seed <- 3000
 
 ```
 
