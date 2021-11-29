@@ -199,12 +199,11 @@ Another thing I realized is that `Cabin` and `Ticket` have additional levels in 
 ```{r}
 
 training_df <- subset(training_data_imputed, select = -c(Survived_mean_by_Ticket, Survived_mean_by_Cabin))
-
 predicted_Survived_training <- predict_titanic(training_df, training_df)
 
 ```
 
-Somewhat encouragingly, dropping those two variables reduced the accuracy to a level that seems more consistent with the minimal model we've developed here, which lends credence to the idea that those two columns were causing overfitting.
+Somewhat encouragingly, dropping those two variables reduced the accuracy to a level that seems more consistent with the minimal model we've developed here (~85%), which lends credence to the idea that those two columns were causing overfitting.
 
 I'll note here that I had expected cross-validation to deal with the overfitting issue; evidently that was not true in this case.
 
@@ -218,7 +217,6 @@ testing_data <- read.csv("~/repos/toolkit/datasets/titanic/test.csv")
 
 testing_data_prepped <- subset(testing_data, select = -c(PassengerId, Name, Ticket, Cabin))
 testing_data_prepped$Sex <- encode_sex(testing_data_prepped$Sex)
-
 encoding_map <- data.frame(Embarked = training_data$Embarked, Survived_mean_by_Embarked = training_data_encoded$Survived_mean_by_Embarked) %>% unique()
 testing_data_prepped$Survived_mean_by_Embarked <- purrr::map_dbl(testing_data_prepped$Embarked, function(emb_val) encoding_map$Survived_mean_by_Embarked[[which(encoding_map$Embarked == emb_val)]])
 testing_data_prepped$Age <- impute_by_mean(testing_data_prepped, "Age")
