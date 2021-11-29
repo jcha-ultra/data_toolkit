@@ -1,10 +1,11 @@
 
 ```{r libs}
 
-library(caret)
-library(dataPreparation)
-library(magrittr)
-library(dplyr)
+pacman::p_load(caret, dataPreparation, magrittr, dplyr)
+# library(caret)
+# library(dataPreparation)
+# library(magrittr)
+# library(dplyr)
 
 ```
 
