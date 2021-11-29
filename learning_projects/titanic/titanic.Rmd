@@ -364,6 +364,8 @@ Regardless, the robustness is now all the way up to -3.5%, from -7%, which seems
 The following are thoughts on what I've learned from the project so far. As with the other parts of this document, take these with a grain of salt, since there is a great deal about this topic that I don't know about yet.
 
 * Overfitting really is a big problem that seems to pop up really easily.
+    + can help with this by dropping variables that aren't likely to have any predictive power
+    + dimensional reduction (such as via PCA) also helps here
 * When cleaning the data, it's important to check for values that might code for missing data but wasn't recognized as such by the data package, such as blank strings, and clean those into the appropriate representation in the data. I forgot to do this so ended up thinking initially that there was very little data missing when I was looking at the summary of the data
 * PCA is as great as I thought it would be, even if reading the components can get a little messy. Personally, I find it kind of magical, even though I know how it works mechanically and on a conceptual level it's incredibly simple.
 * High-cardinality categorical variables are tricky:
