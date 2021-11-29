@@ -265,6 +265,100 @@ Now that we know the performance of the initial version of the trained model is,
 * try repeated cross validation
 * try a different model that's not knn
 
+## Model Tweaking: Perform PCA transform on data before training
+
+The robustness of the model seems okay-ish in my non-expert eyes (-7% from training to testing), but I want to see if I can improve it somewhat by dimensionality reduction, which, in theory, should reduce the amount of information clutter that could cause overfitting.
+
+Since I already looked into PCA, I'm going to just use that as my reduction mechanism. First, we run PCA on the training predictors to see how many components to keep.
+
+
+```{r pca_examination}
+
+prep_training_data <- function(raw_data) {
+  data_cleaned <- clean_titanic_data(raw_data, has_Survived_col = TRUE)
+  data_encoded <- encode_titanic_data(data_cleaned)
+  data_imputed <- impute_titanic_data(data_encoded)
+  data_prepped <- subset(training_data_imputed, select = -c(Survived_mean_by_Ticket, Survived_mean_by_Cabin))
+  return(data_prepped)
+}
+training_data_prepped <- prep_training_data(training_data)
+
+pca_titanic_data <- function(data) {
+  # data <- training_data_prepped # debug
+  training_data_predictors <- select(data, all_of(setdiff(colnames(data), "Survived")))
+  predictors_pca <- prcomp(training_data_predictors, center = TRUE, scale. = TRUE)
+  return(predictors_pca)
+}
+training_data_pca <- pca_titanic_data(training_data_prepped)
+
+summary(training_data_pca)
+```
+
+I'm going to drop the last 2 components (PC6 and PC7); I'm not sure if that's too many, but it still leaves me with ~87% variance, so it seems okay.
+
+### Dim Reduction Result Forecasts
+
+It should be interesting to make some forecasts on what the results might look like and see how they match up:
+1. Running the prediction on the dim-reduced _training_ data should result in lower predictive ability, compared to the 85% it is on the non-reduced data. This is because the model now has less information to use for prediction, which means the fit won't be as good.
+2. The predictive ability on the _testing_ data should NOT decrease, which means the robustness should increase, because the predictive abilities on the testing data is now closer to that on the training data.
+3. There might actually be a small increase on the predictive ability on the testing data, but I'm less sure about this than for #2. I'd definitely still lean towards yes, though, because again, if you're throwing away small variations in the data that's very specific to the training set, you _should_ then improve your predictive ability overall due to not having the model be dependent on those small variations. 
+   * I don't think this will be a large improvement, though, because the model wasn't super brittle pre-dim-reduction. Assuming prediction #1 holds, that means there's a cap on how good it can be, since it would be unlikely for the model to work better on the testing data than in the training data. I would be surprised (and quite happy) if it even improves to something like 81%.
+
+
+
+```{r predict_pca_training}
+
+rotate_training_data <- function(data, data_pca, drop = 6:7) {
+  rotated_predictors <- data_pca$x
+  rotated_predictors_drop <- rotated_predictors[, -drop]
+  training_data_pca_rotated <- cbind(as.data.frame(rotated_predictors_drop), Survived = data$Survived)
+  return(training_data_pca_rotated)
+}
+training_data_rotated <- rotate_training_data(training_data_prepped, training_data_pca)
+
+predicted_Survived_training <- predict_titanic(training_data_rotated, training_data_rotated, seed = seed)
+
+```
+
+Running the prediction on the dim-reduced training data did indeed decrease the predictive ability to about 82.5%, per forcast #1, but happily, it's quite some ways from the previous 78% predictive ability on the non-reduced training data. That means there's some room for that to improve.
+
+
+```{r predict_pca_testing}
+
+prep_testing_data_2 <- function(raw_data, training_data_encoded) {
+  testing_data_prepped <- subset(raw_data, select = -c(PassengerId, Name, Ticket, Cabin))
+  testing_data_prepped$Sex <- encode_sex(testing_data_prepped$Sex)
+  encoding_map <- data.frame(Embarked = training_data$Embarked, Survived_mean_by_Embarked = training_data_encoded$Survived_mean_by_Embarked) %>% unique()
+  testing_data_prepped$Survived_mean_by_Embarked <- purrr::map_dbl(testing_data_prepped$Embarked, function(emb_val) encoding_map$Survived_mean_by_Embarked[[which(encoding_map$Embarked == emb_val)]])
+  testing_data_prepped$Age <- impute_by_mean(testing_data_prepped, "Age")
+  testing_data_prepped$Fare <- impute_by_mean(testing_data_prepped, "Fare") # new; no NAs in training data
+  return(testing_data_prepped)
+}
+testing_data_prepped <- prep_testing_data_2(testing_data, training_data_encoded)
+
+rotate_testing_data <- function(data, data_pca, drop = 6:7) {
+  # data_pca <- training_data_pca
+  # data <- testing_data_prepped
+  rotated_predictors <- predict(data_pca, newdata = data)
+  rotated_predictors_drop <- rotated_predictors[, -drop]
+  testing_data_pca_rotated <- as.data.frame(rotated_predictors_drop)
+  return(testing_data_pca_rotated)
+}
+testing_data_rotated <- rotate_testing_data(testing_data_prepped, training_data_pca)
+
+predicted_Survived_testing <- predict_titanic(training_data_rotated, testing_data_rotated, seed = seed)
+
+write_titanic_prediction <- function(prediction, name) {
+  prediction_df <- data.frame(PassengerId = testing_data$PassengerId, Survived = prediction)
+  write.csv(prediction_df, paste0("~/repos/toolkit/learning_projects/titanic/", name), row.names = FALSE)
+}
+write_titanic_prediction(predicted_Survived_testing, "titanic_prediction_pca.csv")
+```
+
+Submitting the results to Kaggle, it appears that the predictive ability has now improved to 0.78947, which is about 1% better than before. Not as high as I'd hoped, but at least it's not lower. Apparently, this 1% increase was enough to jump to within the 10th percentile (1306) on the leaderboards, which doesn't give me much confidence in the leaderboards—I'm assuming there's a morass of predictions that in the 78-79% range.
+
+Regardless, the robustness is now all the way up to -3.5%, from -7%, which seems quite good for a relatively simple transformation.
+
 ## Thoughts
 
 The following are thoughts on what I've learned from the project so far. As with the other parts of this document, take these with a grain of salt, since there is a great deal about this topic that I don't know about yet.
