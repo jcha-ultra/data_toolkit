@@ -250,7 +250,7 @@ write.csv(prediction_df, "~/repos/toolkit/learning_projects/titanic/titanic_pred
 
 ```
 
-[Update] After submitting the results, the success rate turned out to be 77.99%, which is... actually not terrible; the error rate difference is 6%, which intuitively seems okay as far as robustness goes. In terms of performance on the leaderboards, it's within the top quartile, which again is not bad for such a simple approach.
+[Update] After submitting the results, the success rate turned out to be 77.99%, which is... actually not terrible; the error rate difference is 7%, which intuitively seems okay as far as robustness goes. In terms of performance on the leaderboards, it's within the top quartile, which again is not bad for such a simple approach.
 
 ## Model Tweaking Ideas
 
