@@ -302,9 +302,7 @@ It should be interesting to make some forecasts on what the results might look l
 1. Running the prediction on the dim-reduced _training_ data should result in lower predictive ability, compared to the 85% it is on the non-reduced data. This is because the model now has less information to use for prediction, which means the fit won't be as good.
 2. The predictive ability on the _testing_ data should NOT decrease, which means the robustness should increase, because the predictive abilities on the testing data is now closer to that on the training data.
 3. There might actually be a small increase on the predictive ability on the testing data, but I'm less sure about this than for #2. I'd definitely still lean towards yes, though, because again, if you're throwing away small variations in the data that's very specific to the training set, you _should_ then improve your predictive ability overall due to not having the model be dependent on those small variations. 
-   * I don't think this will be a large improvement, though, because the model wasn't super brittle pre-dim-reduction. Assuming prediction #1 holds, that means there's a cap on how good it can be, since it would be unlikely for the model to work better on the testing data than in the training data. I would be surprised (and quite happy) if it even improves to something like 81%.
-
-
+   * I don't think this will be a large improvement, though, because the model wasn't super brittle before the dim-reduction. Assuming prediction #1 holds, that means there's a cap on how good it can be, since it would be unlikely for the model to work better on the testing data than in the training data. I would be surprised (and quite happy) if it even improves to something like 81%.
 
 ```{r predict_pca_training}
 
@@ -358,6 +356,11 @@ write_titanic_prediction(predicted_Survived_testing, "titanic_prediction_pca.csv
 Submitting the results to Kaggle, it appears that the predictive ability has now improved to 0.78947, which is about 1% better than before. Not as high as I'd hoped, but at least it's not lower. Apparently, this 1% increase was enough to jump to within the 10th percentile (1306) on the leaderboard, which doesn't give me much confidence in how informative the leaderboard is—I'm assuming there's a morass of predictions in the 78-79% range.
 
 Regardless, the robustness is now all the way up to -3.5%, from -7%, which seems quite good for a relatively simple transformation.
+
+## Wrap-up
+
+There are a number of other tweaks possible, as noted in an earlier section, but I have my doubts on how much I can learn from them that's generalizable to other datasets, so I'll hold off on those. For now, this notebook will stand as a record of my first foray into machine learning.
+
 
 ## Thoughts
 
