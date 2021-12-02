@@ -1,3 +1,6 @@
+## Introduction
+
+This is a learning project for me to get acquainted with the basics of machine learning. As such, it is likely to contain mistakes, so please be aware of that if you intend to use this as a reference.
 
 ```{r libs}
 
@@ -16,10 +19,6 @@ training_data <- read.csv(path)
 seed <- 3000
 
 ```
-
-## Introduction
-
-This is a learning project for me to get acquainted with the basics of machine learning. As such, it is likely to contain mistakes, so please be aware of that if you intende to use this as a reference.
 
 ## Examination
 
