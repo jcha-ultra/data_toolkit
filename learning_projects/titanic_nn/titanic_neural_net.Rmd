@@ -94,12 +94,12 @@ titanic_model_1 <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, d
 
 compile_titanic_output_1 <- function(predictors, expected, nn_output) {
   predictors %>% cbind(expected) %>%
-    mutate(nn_output = nn_output[[1]][,2])
+    mutate(nn_output = nn_output[,2])
   # data.frame(k = k_vec, root_k = sqrt(k_vec)) %>% 
   # mutate(nn_output = predict(model, select(., k))[,1]) %>%
   # mutate(diff_pct = abs(nn_output - root_k)/root_k)
 }
-titanic_training_output_1 <- compile_titanic_output_1(select(training_data_rotated, -Survived), select(training_data_rotated, Survived), titanic_model_1$net.result)
+titanic_training_output_1 <- compile_titanic_output_1(select(training_data_rotated, -Survived), select(training_data_rotated, Survived), titanic_model_1$net.result[[1]])
 
 print(titanic_model_1)
 print(titanic_training_output_1)
@@ -121,3 +121,23 @@ print(correct_pct)
 It's... about 85.86%??? This seems absolutely incredible to me, because I have no clue if the neural net parameters are appropriate for this task, and I basically made up the mapping to the binary result without any consultation as to what the best thing to do there is. And yet we still ended up about 4% better than the previous model.
 
 With that said, there's still a good chance that this model is not robust and flounders on the test set, so we should confirm that.
+
+```{r}
+
+titanic_testing_output_1 <- predict(titanic_model_1, testing_data_rotated) %>%
+  compile_titanic_output_1(testing_data_rotated, rep(NA, nrow(testing_data_rotated)), nn_output = .)
+
+write_titanic_prediction(prediction = round(titanic_testing_output_1$nn_output), testing_data = testing_data, name = "titanic_prediction_nn_1.csv", dir = "~/repos/toolkit/learning_projects/titanic_nn")
+```
+
+Okay, so we got 76.32%, which is _not_ an improvement. Clearly, the model we trained was quite brittle. I wonder if the test dataset required too much extrapolation, or if the model also isn't that good with interpolation, either? In any case, we'll put the finer adjustments to the side for now, and fix the major issues first.
+
+## Titanic Prediction via NN (second try)
+
+So, what are those major (potential) issues?
+1. We clearly need a better system of mapping from the numerical output to the prediction categories. I'm sure there's a standard way of doing this, so this should just be a quick research stint.
+2. We're using a 1/10/1 structure. Perhaps changing it around will give better results?
+3. I'm pretty sure the default loss function is mean-squared. That might not be appropriate for a binary classifier.
+4. I think by default the `neuralnet` trainer doesn't have an activation function enabled, so maybe we were pretty much just doing linear regression?
+
+Hopefully, by looking into these, I can both make the loss function converge faster, and make the model more robust.
