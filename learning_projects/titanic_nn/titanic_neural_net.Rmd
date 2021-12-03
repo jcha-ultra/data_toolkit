@@ -45,16 +45,16 @@ Before trying the Titanic dataset, I want to do an initial test on a very simple
 ```{r roots_test}
 
 library("neuralnet")
-training_data = read.csv("~/repos/toolkit/datasets/roots.csv", header=TRUE)
-model <- neuralnet(formula = root_k ~ k, data = training_data)
-output <- cbind(training_data, nn_output = unlist(model$net.result))
+training_data <- read.csv("~/repos/toolkit/datasets/roots.csv", header=TRUE)
+simple_test_model <- neuralnet(formula = root_k ~ k, data = training_data)
+output <- cbind(training_data, nn_output = unlist(simple_test_model$net.result))
 print(output)
 ```
 
 It's... not horrible? At least it follows the shape of the expected values. But it's not great either. The reason is almost certainly that the default number of neurons is just 1. So, if we increase that...
 ```{r}
-model <- neuralnet(formula = root_k ~ k, data = training_data, hidden = 10)
-output <- cbind(training_data, nn_output = unlist(model$net.result))
+simple_test_model <- neuralnet(formula = root_k ~ k, data = training_data, hidden = 10)
+output <- cbind(training_data, nn_output = unlist(simple_test_model$net.result))
 print(output)
 ```
 
@@ -69,7 +69,7 @@ predict_root <- function(k_vec, model) {
     mutate(nn_output = predict(model, select(., k))[,1]) %>%
     mutate(diff_pct = abs(nn_output - root_k)/root_k)
 }
-roots_interpolation_outputs <- predict_root(interpolation_test_data, model)
+roots_interpolation_outputs <- predict_root(interpolation_test_data, simple_test_model)
 print(roots_interpolation_outputs)
 ```
 
@@ -77,7 +77,7 @@ That looks fine, as expected. For extrapolation:
 
 ```{r roots_test_extrapolation}
 
-roots_extrapolation_outputs <- predict_root(extrapolation_test_data, model)
+roots_extrapolation_outputs <- predict_root(extrapolation_test_data, simple_test_model)
 print(roots_extrapolation_outputs)
 plot()
 ```
@@ -87,3 +87,37 @@ Again, no surprises. It's interesting that the error percentage goes up essentia
 ## Titanic Prediction via NN (first try)
 
 I don't think this will work too well, but I'm going to first try straight up using the exact training parameters as I did with the previous section, except now with the Titanic dataset. It _shouldn't_ work, because the previous output wasn't for classification, while this one definitely is.
+
+```{r titanic_nn_1}
+
+titanic_model_1 <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = 10)
+
+compile_titanic_output_1 <- function(predictors, expected, nn_output) {
+  predictors %>% cbind(expected) %>%
+    mutate(nn_output = nn_output[[1]][,2])
+  # data.frame(k = k_vec, root_k = sqrt(k_vec)) %>% 
+  # mutate(nn_output = predict(model, select(., k))[,1]) %>%
+  # mutate(diff_pct = abs(nn_output - root_k)/root_k)
+}
+titanic_training_output_1 <- compile_titanic_output_1(select(training_data_rotated, -Survived), select(training_data_rotated, Survived), titanic_model_1$net.result)
+
+print(titanic_model_1)
+print(titanic_training_output_1)
+
+```
+
+This turned out better than I expected, though I'm fairly certain the loss minimization took way longer than it should have to converge (about 50k steps). The results did indeed end up not being categorical, but they still roughly corresponded to the expected results (i.e. the lower values will tend to correspond to `Survived` being 0, and vice versa for higher values).
+
+Clearly I need to do some research on how to turn this into a classification result, but for the sake of getting some sort of result, I'm simply going to round the result to 0 or 1 and see how it does.
+
+```{r titanic_nn_1_verification}
+
+correct_pct <- titanic_training_output_1 %>% mutate(prediction = round(nn_output)) %>%
+  filter(as.integer(as.character(Survived)) - prediction == 0) %>%
+  nrow() %>% `/`(nrow(titanic_training_output_1))
+print(correct_pct)
+```
+
+It's... about 85.86%??? This seems absolutely incredible to me, because I have no clue if the neural net parameters are appropriate for this task, and I basically made up the mapping to the binary result without any consultation as to what the best thing to do there is. And yet we still ended up about 4% better than the previous model.
+
+With that said, there's still a good chance that this model is not robust and flounders on the test set, so we should confirm that.
