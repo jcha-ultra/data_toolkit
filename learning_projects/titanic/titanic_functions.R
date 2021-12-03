@@ -96,9 +96,9 @@ predict_titanic <- function(training_df, test_df, seed = NULL) {
   return(prediction)
 }
 
-write_titanic_prediction <- function(prediction, testing_data, name) {
+write_titanic_prediction <- function(prediction, testing_data, name, dir = "~/repos/toolkit/learning_projects/titanic") {
   prediction_df <- data.frame(PassengerId = testing_data$PassengerId, Survived = prediction)
-  write.csv(prediction_df, paste0("~/repos/toolkit/learning_projects/titanic/", name), row.names = FALSE)
+  write.csv(prediction_df, paste0(dir, "/", name), row.names = FALSE)
 }
 
 # pacman::p_load(caret, dataPreparation, magrittr, dplyr)
