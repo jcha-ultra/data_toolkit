@@ -14,7 +14,7 @@ pacman::p_load(caret, dataPreparation, magrittr, dplyr)
 
 ```{r ingest}
 
-path <- "~/repos/toolkit/datasets/titanic/train.csv"
+path <- "data_toolkit/datasets/titanic/train.csv"
 training_data <- read.csv(path)
 seed <- 3000
 
@@ -212,7 +212,7 @@ Here we will prepare the testing data the same way that we did the training data
 
 ```{r testing_data_prep}
 
-testing_data <- read.csv("~/repos/toolkit/datasets/titanic/test.csv")
+testing_data <- read.csv("data_toolkit/datasets/titanic/test.csv")
 
 prep_testing_data <- function() {
   testing_data_prepped <- subset(testing_data, select = -c(PassengerId, Name, Ticket, Cabin))
@@ -245,7 +245,7 @@ The next step is to submit to Kaggle. While this is clearly not going to score h
 
 ```{r save_prediction}
 
-write.csv(prediction_df, "~/repos/toolkit/learning_projects/titanic/titanic_prediction_2.csv", row.names = FALSE)
+write.csv(prediction_df, "data_toolkit/learning_projects/titanic/titanic_prediction_2_seed_3000.csv", row.names = FALSE)
 
 ```
 
@@ -347,7 +347,7 @@ predicted_Survived_testing <- predict_titanic(training_data_rotated, testing_dat
 
 write_titanic_prediction <- function(prediction, name) {
   prediction_df <- data.frame(PassengerId = testing_data$PassengerId, Survived = prediction)
-  write.csv(prediction_df, paste0("~/repos/toolkit/learning_projects/titanic/", name), row.names = FALSE)
+  write.csv(prediction_df, paste0("data_toolkit/learning_projects/titanic/", name), row.names = FALSE)
 }
 write_titanic_prediction(predicted_Survived_testing, "titanic_prediction_pca.csv")
 ```
