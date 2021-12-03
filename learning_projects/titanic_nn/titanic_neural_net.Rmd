@@ -1,0 +1,62 @@
+# Neural Net Exploration
+
+## Introduction
+
+This project will be an exploration of machine learning using neural nets. I'll be using the same Titanic dataset I used for the other exploration project in `titanic/titanic.Rmd`, starting with the post-PCA transform version. Even more than that other one, I'll be taking an experimental approach here, recording all the things I tried, including the mistakes and false paths I go down. My hope is that this will serve as a chronicle of someone's initial foray into this topic.
+
+Please note that this is not the work of an expert, and any conclusions and procedures shown here may be incorrect.
+
+## Overall Expectations
+
+I'd like to start off with what my expectations on what I will find out with this exploration. From what I've read so far, compared to the individual linear models often used in machine learning, neural nets would seem to be applicable to a wider range of problems, but are both more computationally expensive and more of a black box.
+
+I think the compute requirement has turned out to be a strength rather than a weakness (at least for complex problems), because the flip side of it is that (deep) neural nets also scale way better with additional compute, which we are continually getting more of. Being a black box is a much bigger problem, because it greatly hinders the interpretability of the system, and makes it way harder to fix alignment problems that will inevitably pop up.
+
+With regards to my specific effort on the Titanic dataset, I have my doubts as to how much better the neural net can be compared to the previous model I tried (KNN). I think realistically, there's a limit to how predictive the information we're given can truly be for the survival—surely there are factors outside of what's recorded in the dataset that contributed to whether someone survived or not. With that said, maybe there is something that the neural net can pick up that the other model couldn't; I would be quite happy if it got to 90% accuracy on the testing set.
+
+## Initial Prep
+
+We'll prep the data the same way we did earlier.
+
+```{r data_prep}
+
+pacman::p_load(caret, dataPreparation, magrittr, dplyr)
+set.seed(3000)
+
+# recreating data prep from titanic.Rmd
+source("~/repos/toolkit/learning_projects/titanic/titanic_functions.R")
+training_data <- read.csv("~/repos/toolkit/datasets/titanic/train.csv")
+testing_data <- read.csv("~/repos/toolkit/datasets/titanic/test.csv")
+training_data_prepped <- prep_training_data(training_data)
+training_data_pca <- pca_titanic_data(training_data_prepped)
+training_data_rotated <- rotate_training_data(training_data_prepped, training_data_pca)
+
+training_data_cleaned <- clean_titanic_data(training_data)
+training_data_encoded <- encode_titanic_data(training_data_cleaned)
+testing_data_prepped <- prep_testing_data_2(testing_data, training_data_encoded)
+testing_data_rotated <- rotate_testing_data(testing_data_prepped, training_data_pca)
+
+```
+
+
+## Initial Test
+
+Before trying the Titanic dataset, I want to do an initial test on a very simple example, one that I expect the neural net to have no trouble with even with largely default settings: predicting the roots of some positive numbers.
+
+```{r roots_test}
+
+library("neuralnet")
+training_data = read.csv("~/repos/toolkit/datasets/roots.csv", header=TRUE)
+model <- neuralnet(formula = root_k ~ k, data = training_data)
+output <- cbind(training_data, nn_output = unlist(model$net.result))
+print(output)
+```
+
+It's... not horrible? At least it follows the shape of the expected values. But it's not great either. The reason is almost certainly that the default number of neurons is just 1. So, if we increase that...
+
+```{r}
+model <- neuralnet(formula = root_k ~ k, data = training_data, hidden = 10)
+output <- cbind(training_data, nn_output = unlist(model$net.result))
+print(output)
+```
+Much better. Now let's see how well it interpolates and extrapolates; I expect the standard results for that—interpolation results to be largely comparable to the training set, and extrapolation to be okay at first and get worse as it gets further away.
