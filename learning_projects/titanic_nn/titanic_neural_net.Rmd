@@ -38,7 +38,6 @@ testing_data_rotated <- rotate_testing_data(testing_data_prepped, training_data_
 
 ```
 
-
 ## Initial Test
 
 Before trying the Titanic dataset, I want to do an initial test on a very simple example, one that I expect the neural net to have no trouble with even with largely default settings: predicting the roots of some positive numbers.
@@ -53,10 +52,38 @@ print(output)
 ```
 
 It's... not horrible? At least it follows the shape of the expected values. But it's not great either. The reason is almost certainly that the default number of neurons is just 1. So, if we increase that...
-
 ```{r}
 model <- neuralnet(formula = root_k ~ k, data = training_data, hidden = 10)
 output <- cbind(training_data, nn_output = unlist(model$net.result))
 print(output)
 ```
+
 Much better. Now let's see how well it interpolates and extrapolates; I expect the standard results for that—interpolation results to be largely comparable to the training set, and extrapolation to be okay at first and get worse as it gets further away.
+```{r roots_test_interpolation}
+
+interpolation_test_data <- 1:49 + .5
+extrapolation_test_data <- 51:100
+
+predict_root <- function(k_vec, model) {
+  data.frame(k = k_vec, root_k = sqrt(k_vec)) %>% 
+    mutate(nn_output = predict(model, select(., k))[,1]) %>%
+    mutate(diff_pct = abs(nn_output - root_k)/root_k)
+}
+roots_interpolation_outputs <- predict_root(interpolation_test_data, model)
+print(roots_interpolation_outputs)
+```
+
+That looks fine, as expected. For extrapolation:
+
+```{r roots_test_extrapolation}
+
+roots_extrapolation_outputs <- predict_root(extrapolation_test_data, model)
+print(roots_extrapolation_outputs)
+plot()
+```
+
+Again, no surprises. It's interesting that the error percentage goes up essentially linearly as `k` gets larger, which means that the error term must have been `O(k^2)`. It seems like there should be a fairly straightforward mathematical proof of that, though I think I'm going to skip over that derivation to get to the main course here.
+
+## Titanic Prediction via NN (first try)
+
+I don't think this will work too well, but I'm going to first try straight up using the exact training parameters as I did with the previous section, except now with the Titanic dataset. It _shouldn't_ work, because the previous output wasn't for classification, while this one definitely is.
