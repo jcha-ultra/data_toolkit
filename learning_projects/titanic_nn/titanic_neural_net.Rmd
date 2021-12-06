@@ -138,3 +138,80 @@ So, what are those major (potential) issues?
 4. I think by default the `neuralnet` trainer doesn't have an activation function enabled, so maybe we were pretty much just doing linear regression?
 
 Hopefully, by looking into these, I can both make the loss function converge faster, and make the model more robust.
+
+## Titanic Prediction via NN (second try)
+
+Okay, so here I have to make it clear that, even more than before, I am now firmly beyond my own current knowledge on the subject at this point. For the sake of my own record I'm still going to write down all the things I try, but I'm going to be making a lot of missteps here. Tread lightly, readers.
+
+In any case, the first thing I'm going to try is to switch the loss function away from squared errors. The reason is that we're doing a binary classification, which I think SSE isn't optimized for; I believe the right loss function is "cross-entropy", from what I've read. So let's try that...
+
+```{r model_2.1}
+
+titanic_model_2 <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = 10, err.fct = "ce", lifesign = "minimal")
+
+```
+
+...It didn't work. This is the error I got:
+
+`hidden: 10    thresh: 0.01    rep: 1/1    steps: Warning in log(x) : NaNs produced`
+`Warning in log(x) : NaNs produced`
+`Warning in log(1 - x) : NaNs produced`
+`Warning: 'err.fct' does not fit 'data' or 'act.fct'`
+`  81034	error: NaN      	time: 59.3 secs`
+  
+I think I know why; the current output from the model is not actually constrained within 0 and 1, which obviously would cause `NaNs` when passed through the `log` function as part of cross-entropy. And the reason the output is not so constrained is (I think) that we don't have an activation function specified, so the node connection weights are just being passed straight through.
+
+I'm going to try enabling the activation function (which by default is logistical regression).
+
+```{r model_2.2}
+
+titanic_model_2 <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = 10, linear.output = FALSE, err.fct = "ce", lifesign = "minimal")
+```
+
+It worked! Or at least, there's not an error. On reading the `neuralnet` docs, I notice that I was wrong about the activation function not being enabled—it's more that it just wasn't applied to the final output, which `linear.output = FALSE` enables.
+
+I have a feeling that it didn't actually work that well though, since this is the output:
+`hidden: 10    thresh: 0.01    rep: 1/1    steps:   70771	error: 558.04023	time: 58.24 secs`
+
+70K steps? That tells me that it didn't converge that well, so I'm not expecting a great deal of improvement here, if any. But we shall see...
+
+```{r training_output_2}
+
+titanic_training_output_2 <- compile_titanic_output_1(select(training_data_rotated, -Survived), select(training_data_rotated, Survived), titanic_model_2$net.result[[1]])
+
+print(titanic_training_output_2)
+print(hist(titanic_training_output_2$nn_output))
+
+```
+Again, just glancing at this, the results look reasonable—as the output goes from 0 to 1, the actual chance of `Survival` values being 1 goes up as well. And, it's also good that the predicted values (which I guess are more interpretable as probabilities) are clustered around 0 and 1, which means that the model is pretty confident on most of the predictions.
+
+```{r training_accuracy_2}
+
+correct_pct_2<- titanic_training_output_2 %>% mutate(prediction = round(nn_output)) %>%
+  filter(as.integer(as.character(Survived)) - prediction == 0) %>%
+  nrow() %>% `/`(nrow(titanic_training_output_2))
+print(correct_pct_2)
+
+```
+It's pretty much the same as before on the training data. Hopefully it's a little less brittle this time on the testing set?
+
+```{r testing_output_2}
+
+make_testing_output <- function(model, testing_data_final, write_name = NULL, dir = "~/repos/toolkit/learning_projects/titanic_nn") {
+  titanic_testing_output <- predict(model, testing_data_final) %>%
+    compile_titanic_output_1(testing_data_final, rep(NA, nrow(testing_data_final)), nn_output = .) %>% mutate(prediction = round(nn_output))
+  # print(titanic_testing_output$nn_output)
+  if (!is.null(write_name))
+    write_titanic_prediction(prediction = titanic_testing_output$prediction, testing_data = testing_data, name = write_name, dir = dir)
+  return(titanic_testing_output)
+}
+
+titanic_testing_output_2 <- make_testing_output(titanic_model_2, testing_data_rotated, write_name = "titanic_prediction_nn_2.csv")
+```
+There's a whopping 46-line difference between this prediction and the previous one, which is more than a 10% difference. I feel that this is either a very good sign, or a very bad one, which makes me very nervous...
+
+Submitting this result, I got what may have been the worst outcome, which was... literally the exact same correctness percentage as before, 0.76315. How this could've happened despite the differences boggles my mind, and I did check that I in fact submitted the right file.
+
+The problem now is that I have no clue as to whether what I did made any sense whatsoever, given that I've obtained no additional information. And the other thing is that in the process of trying this step, I've in fact done 3 of the 4 things I was going to try.
+
+So I suppose there's nothing to do but to attempt the last item—altering the node structure.
