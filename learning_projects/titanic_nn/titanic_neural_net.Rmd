@@ -79,7 +79,7 @@ That looks fine, as expected. For extrapolation:
 
 roots_extrapolation_outputs <- predict_root(extrapolation_test_data, simple_test_model)
 print(roots_extrapolation_outputs)
-plot()
+plot(roots_extrapolation_outputs$k, roots_extrapolation_outputs$diff_pct)
 ```
 
 Again, no surprises. It's interesting that the error percentage goes up essentially linearly as `k` gets larger, which means that the error term must have been `O(k^2)`. It seems like there should be a fairly straightforward mathematical proof of that, though I think I'm going to skip over that derivation to get to the main course here.
@@ -101,7 +101,6 @@ compile_titanic_output_1 <- function(predictors, expected, nn_output) {
 }
 titanic_training_output_1 <- compile_titanic_output_1(select(training_data_rotated, -Survived), select(training_data_rotated, Survived), titanic_model_1$net.result[[1]])
 
-print(titanic_model_1)
 print(titanic_training_output_1)
 
 ```
@@ -122,7 +121,7 @@ It's... about 85.86%??? This seems absolutely incredible to me, because I have n
 
 With that said, there's still a good chance that this model is not robust and flounders on the test set, so we should confirm that.
 
-```{r}
+```{r testing_output_1}
 
 titanic_testing_output_1 <- predict(titanic_model_1, testing_data_rotated) %>%
   compile_titanic_output_1(testing_data_rotated, rep(NA, nrow(testing_data_rotated)), nn_output = .)
@@ -131,8 +130,6 @@ write_titanic_prediction(prediction = round(titanic_testing_output_1$nn_output),
 ```
 
 Okay, so we got 76.32%, which is _not_ an improvement. Clearly, the model we trained was quite brittle. I wonder if the test dataset required too much extrapolation, or if the model also isn't that good with interpolation, either? In any case, we'll put the finer adjustments to the side for now, and fix the major issues first.
-
-## Titanic Prediction via NN (second try)
 
 So, what are those major (potential) issues?
 1. We clearly need a better system of mapping from the numerical output to the prediction categories. I'm sure there's a standard way of doing this, so this should just be a quick research stint.
