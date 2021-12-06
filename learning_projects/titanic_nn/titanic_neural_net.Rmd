@@ -103,6 +103,13 @@ titanic_training_output_1 <- compile_titanic_output_1(select(training_data_rotat
 
 print(titanic_training_output_1)
 
+compile_titanic_output_2 <- function(predictors, expected, nn_output, output_vec = 2) {
+  predictors %>% cbind(expected) %>%
+    mutate(nn_output = nn_output[,output_vec])
+  # data.frame(k = k_vec, root_k = sqrt(k_vec)) %>% 
+  # mutate(nn_output = predict(model, select(., k))[,1]) %>%
+  # mutate(diff_pct = abs(nn_output - root_k)/root_k)
+}
 ```
 
 This turned out better than I expected, though I'm fairly certain the loss minimization took way longer than it should have to converge (about 50k steps). The results did indeed end up not being categorical, but they still roughly corresponded to the expected results (i.e. the lower values will tend to correspond to `Survived` being 0, and vice versa for higher values).
@@ -197,9 +204,9 @@ It's pretty much the same as before on the training data. Hopefully it's a littl
 
 ```{r testing_output_2}
 
-make_testing_output <- function(model, testing_data_final, write_name = NULL, dir = "~/repos/toolkit/learning_projects/titanic_nn") {
+make_testing_output <- function(model, testing_data_final, write_name = NULL, dir = "~/repos/toolkit/learning_projects/titanic_nn", nn_output_vec = 2) {
   titanic_testing_output <- predict(model, testing_data_final) %>%
-    compile_titanic_output_1(testing_data_final, rep(NA, nrow(testing_data_final)), nn_output = .) %>% mutate(prediction = round(nn_output))
+    compile_titanic_output_2(testing_data_final, rep(NA, nrow(testing_data_final)), nn_output = ., output_vec = nn_output_vec) %>% mutate(prediction = round(nn_output))
   # print(titanic_testing_output$nn_output)
   if (!is.null(write_name))
     write_titanic_prediction(prediction = titanic_testing_output$prediction, testing_data = testing_data, name = write_name, dir = dir)
@@ -215,3 +222,59 @@ Submitting this result, I got what may have been the worst outcome, which was...
 The problem now is that I have no clue as to whether what I did made any sense whatsoever, given that I've obtained no additional information. And the other thing is that in the process of trying this step, I've in fact done 3 of the 4 things I was going to try.
 
 So I suppose there's nothing to do but to attempt the last item—altering the node structure.
+
+## Titanic Prediction via NN (third try)
+
+First, though, I noticed that in the `neuralnet` function, it is possible to narrow down the output to a single node (whereas I had 2 before), so I'm going to try that. I don't think mathematically that should make any difference here, though.
+
+```{r titanic_nn_3}
+
+titanic_model_3 <- neuralnet(formula = Survived == "1" ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10), linear.output = FALSE, err.fct = "ce", lifesign = "full")
+
+# titanic_training_output_3 <- compile_titanic_output_1(select(training_data_rotated, -Survived), select(training_data_rotated, Survived), titanic_model_2$net.result[[1]])
+# 
+# print(titanic_training_output_3)
+# print(hist(titanic_training_output_3$nn_output))
+# 
+# correct_pct_3 <- titanic_training_output_3 %>% mutate(prediction = round(nn_output)) %>%
+#   filter(as.integer(as.character(Survived)) - prediction == 0) %>%
+#   nrow() %>% `/`(nrow(titanic_training_output_3))
+# print(correct_pct_3)
+# 
+# titanic_testing_output_3 <- make_testing_output(titanic_model_3, testing_data_rotated, write_name = "titanic_prediction_nn_3.csv")
+
+make_titanic_prediction <- function(titanic_model, iteration, output_vec = 2) {
+  titanic_training_output <- compile_titanic_output_2(select(training_data_rotated, -Survived), select(training_data_rotated, Survived), titanic_model$net.result[[1]], output_vec = output_vec)
+  
+  correct_pct <- titanic_training_output %>% mutate(prediction = round(nn_output)) %>%
+    filter(as.integer(as.character(Survived)) - prediction == 0) %>%
+    nrow() %>% `/`(nrow(titanic_training_output))
+  
+  titanic_testing_output <- make_testing_output(titanic_model, testing_data_rotated, write_name = paste0( "titanic_prediction_nn_",iteration,".csv"), nn_output_vec = output_vec)
+  
+  results <- list(
+    titanic_model = titanic_model,
+    titanic_training_output = titanic_training_output,
+    correct_pct = correct_pct,
+    titanic_testing_output = titanic_testing_output
+  )
+  return(results)
+}
+
+titanic_results_3 <- make_titanic_prediction(titanic_model_3, 3)
+
+```
+
+I was wrong; this did make a difference... it made the prediction much worse, down to ~71-73%. Perhaps it's restricting the error minimization to only the rows where `Survived == 1`? I'll probably look into that later, but certainly that seems like a trap.
+
+## Titanic Prediction via NN (fourth try)
+
+Back to changing the node structure. I'm going to just plug in some random node configurations and see what happens.
+
+```{r titanic_nn_4}
+
+titanic_model_4 <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(5, 3), linear.output = FALSE, err.fct = "ce", lifesign = "full")
+
+```
+
+I tried a few different configurations, but it seems that every time I increase the number of hidden layers, I run into the problem of the gradient not converging fast enough within `stepmax`. Going to do some research and play around with it some more; perhaps it's a learning rate problem?
