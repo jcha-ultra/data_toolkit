@@ -278,3 +278,64 @@ titanic_model_4 <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, d
 ```
 
 I tried a few different configurations, but it seems that every time I increase the number of hidden layers, I run into the problem of the gradient not converging fast enough within `stepmax`. Going to do some research and play around with it some more; perhaps it's a learning rate problem?
+
+(A few hours later...)
+
+Some very interesting results from the experimentation, though nothing definitive. First, a list of some of the things I tried (not in any particular order):
+
+```{r titanic_nn_4_experiments}
+
+titanic_model_4$a <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 3), linear.output = FALSE, err.fct = "ce", lifesign = "full", stepmax = 1e6)
+
+titanic_model_4$b <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(5, 3), linear.output = FALSE, err.fct = "ce", lifesign = "full", stepmax = 1e6) # reached 0.0235674344878095
+
+titanic_model_4$c <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 3), linear.output = FALSE, err.fct = "ce", algorithm = "rprop-", learningrate.factor = list(minus = 0.2, plus = 1.2), lifesign = "full", stepmax = 1e6)
+
+titanic_model_4$d <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 3), linear.output = FALSE, err.fct = "ce", algorithm = "rprop-", learningrate.factor = list(minus = 0.1, plus = 1.2), lifesign = "full", stepmax = 1e6)
+
+titanic_model_4$e <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 3), linear.output = FALSE, err.fct = "ce", algorithm = "sag", learningrate.factor = list(minus = 0.2, plus = 1.2), lifesign = "full", stepmax = 1e6)
+
+titanic_model_4$f <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 2), linear.output = FALSE, err.fct = "ce", algorithm = "backprop", learningrate = 0.0001, lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$g <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 2), linear.output = FALSE, err.fct = "ce", algorithm = "backprop", learningrate = 0.0001, lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$h <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(4, 2), linear.output = FALSE, err.fct = "ce", lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$i <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(3, 2), linear.output = FALSE, err.fct = "ce", lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$j <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(5, 2), linear.output = FALSE, err.fct = "ce", lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$k <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 2), linear.output = FALSE, err.fct = "ce", lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$l <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 3), linear.output = FALSE, err.fct = "ce", learningrate.factor = list(minus = 0.2, plus = 1.2), lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$m <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(10, 2), linear.output = FALSE, err.fct = "ce", learningrate.factor = list(minus = 0.2, plus = 1.2), lifesign = "full", stepmax = 2e5)
+
+titanic_model_4$n <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(5, 3), linear.output = FALSE, err.fct = "ce", algorithm = "backprop", learningrate = .02, lifesign = "full", stepmax = 2e5)
+
+```
+
+So it definitely feels like I'm largely stabbing in the dark here. At the moment, I don't think I have enough of an understanding of the underlying math behind the backprop algorithms to know why they behave the way they do.
+
+With that said, here are some observations and questions from these runs:
+1. Practically speaking, it doesn't seem like there's a guarantee that the partial derivatives of the loss function will converge to below any arbitrary threshold, at least within the max steps I limited myself to, ranged between 100K and 1M steps. The default threshold that `neuralnet` sets for training completion is .01, which I couldn't reach at all in the vast majority of tries. A lot of times the partial values get "stuck" at a certain point and just don't go down further for a long time. Note: the "value" of the partial derivatives that `neuralnet` checks against the `threshold` parameter is the max absolute value of all of the partials.
+2. I wonder about the reason for the non-convergence. My theory right now is that because the size of the dataset is pretty small (~900 observations), the stochastic gradient estimation has high variance, since the batches the estimates are being extracted from are also getting small; perhaps this effect (if it's real) becomes worse the smaller the partials get.
+3. It does seem that, at least for some hyperparameter settings, the partials _do_ keep going down as more steps are pumped into the training process. For run b, for example, they continued to decrease all the way until about 800K steps, and might have continued to do so if the run had gone on for longer.
+4. It's also interesting that the "stuck" points tend to differ somewhat between runs—I've seen differences of 2-3x, or even more. This may very well be due to the random starting weights that `neuralnet` applies, though maybe it's also support for the theory in #2.
+5. Convergence seems to be more difficult when there are more hidden layers, even if the number of connections between layers remain the same—for example, the 5/2 hidden layer structure seems to converge much more slowly than just a single 10-node hidden layer, though increasing the number of total nodes also has the same effect. Being completely speculative, my guess would be that having more layers makes the loss function more nonlinear (since the activation function is being applied more times), and that in turn makes the local gradient structure more volatile.
+6. I tried most of the backprop algorithms available in the package, but as far as I could tell, the default `rprop+` worked at least as well as anything else. I also tried adjusting some of the other hyperparameters such as learning rate, but it's pretty hard to tell what effect they have since `neuralnet` doesn't provide any tools for exposing the internals of the training process. Indeed, I'm finding this package to be pretty constricting when it comes to experimentation, so I may try a different neural net package in future work.
+
+I think I'm getting to the end of my useful time with this dataset, but for the sake of completion, I'll train a 5/2 network and see how it does on the prediction front. I suspect it won't be any better than before—it feels like perhaps that NN fare better when it comes to larger datasets with highly nonlinear relationships, which this dataset doesn't seem to be.
+
+```{r titanic_nn_4_predictions}
+
+titanic_model_4$o <- neuralnet(formula = Survived ~ PC1 + PC2 + PC3 + PC4 + PC5, data = training_data_rotated, hidden = c(5, 2), linear.output = FALSE, err.fct = "ce", lifesign = "full", stepmax = 2e6, threshold = .01)
+
+titanic_results_4 <- make_titanic_prediction(titanic_model_4$o, 4)
+```
+
+And appropriately enough, the success rate turned out to be... 77.99%, which is the exact same rate as the initial model I trained for Titanic. Narrative symmetry aside, that _is_ the best performance of any of the NN models I've trained so far, so if it's not a fluke from the stochastic process, it certainly speaks well for the multi-hidden-layer architecture compared to the single-hidden-layer one earlier.
+
+I will say, though, that the NN seems less robust than linear models—despite its performance on the test set being somewhere around 75-78%, on the training dataset it was pretty much always somewhere around 85%. That actually makes a lot of intuitive sense to me, since the universal approximation theorem means that in theory, you can fit a NN to as close to the target variable as you want, as long as you can keep adding more nodes and pump more compute into it. That sounds amazing, but it's probably also a recipe for overfitting, especially for smaller datasets. I suspect that having clean and representative data is even more important for neural networks than it is for other models.
+
+In any case, that's the end of the work on this dataset.
