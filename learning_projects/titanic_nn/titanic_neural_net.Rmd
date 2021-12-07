@@ -339,3 +339,11 @@ And appropriately enough, the success rate turned out to be... 77.99%, which is 
 I will say, though, that the NN seems less robust than linear models—despite its performance on the test set being somewhere around 75-78%, on the training dataset it was pretty much always somewhere around 85%. That actually makes a lot of intuitive sense to me, since the universal approximation theorem means that in theory, you can fit a NN to as close to the target variable as you want, as long as you can keep adding more nodes and pump more compute into it. That sounds amazing, but it's probably also a recipe for overfitting, especially for smaller datasets. I suspect that having clean and representative data is even more important for neural networks than it is for other models.
 
 In any case, that's the end of the work on this dataset.
+
+## Some Additional Thoughts
+
+There's obviously far more to learn about neural nets, but here are my initial thoughts after this first exposure to it, from both my experiences here and from reading. I reiterate the caveat that these may not turn out to be correct—they're just my current understanding:
+1. Compared to more linear models, neural nets take a lot more computation to fit for the same datasets. Especially for smaller datasets or simple problems, they might be overkill.
+2. Despite their relatively straightforward mathematical underpinnings, in practice neural nets function like black boxes (or maybe very dark gray boxes).
+3. Neural nets are better at solving nonlinear mapping problems such as image recognition or playing games compared to other machine learning techniques.
+4. Neural nets scale well with additional compute.
