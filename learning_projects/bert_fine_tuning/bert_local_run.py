@@ -29,7 +29,7 @@ def get_prediction(text):
     return target_names[probs.argmax()]
 
 # Example
-text = """
-This is amazing! I'm so happy.
-"""
-print(get_prediction(text)) # expected: joy
+# text = """
+# This is amazing! I'm so happy.
+# """
+# print(get_prediction(text)) # expected: joy
