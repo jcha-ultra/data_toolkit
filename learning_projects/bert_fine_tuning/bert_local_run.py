@@ -15,6 +15,7 @@ target_names = emotion_dataset['train'].features['label'].names
 model = BertForSequenceClassification.from_pretrained(save_path, num_labels=len(target_names))
 tokenizer = BertTokenizerFast.from_pretrained(save_path)
 
+# from https://colab.research.google.com/drive/18Qqox_QxJkOs80XVYaoLsdum0dX-Ilxb?usp=sharing#scrollTo=I4aAwDGZXnyk
 def get_prediction(text):
     # prepare our text into tokenized sequence
     inputs = tokenizer(text, padding=True, truncation=True, max_length=max_length, return_tensors="pt")
@@ -25,8 +26,8 @@ def get_prediction(text):
     # executing argmax function to get the candidate label
     return target_names[probs.argmax()]
 
-# Example #1
+# Example
 text = """
 This is amazing! I'm so happy.
 """
-print(get_prediction(text))
+print(get_prediction(text)) # expected: joy
