@@ -1,12 +1,5 @@
-# %%
-import numpy as np
-import torch
-import random
 from transformers import BertTokenizerFast, BertForSequenceClassification
-from transformers import Trainer, TrainingArguments
-from transformers.file_utils import is_tf_available, is_torch_available, is_torch_tpu_available
 from datasets import load_dataset
-from sklearn.metrics import accuracy_score
 from os.path import join
 
 # save info
