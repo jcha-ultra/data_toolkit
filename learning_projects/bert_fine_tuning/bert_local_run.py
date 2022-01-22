@@ -1,3 +1,5 @@
+# this script loads the locally saved huggingface model from `./bert_training_example.ipynb`
+
 from transformers import BertTokenizerFast, BertForSequenceClassification
 from datasets import load_dataset
 from os.path import join
