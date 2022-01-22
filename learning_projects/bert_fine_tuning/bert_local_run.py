@@ -14,6 +14,7 @@ emotion_dataset = load_dataset("emotion")
 target_names = emotion_dataset['train'].features['label'].names
 
 # reload our model/tokenizer. Optional, only usable when in Python files instead of notebooks
+max_length = 512
 model = BertForSequenceClassification.from_pretrained(save_path, num_labels=len(target_names))
 tokenizer = BertTokenizerFast.from_pretrained(save_path)
 
