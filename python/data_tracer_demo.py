@@ -10,7 +10,13 @@ from data_tracer import get_entry, get_value, make_idx_iter, make_loc_iter, trac
 def _(dataset: pd.DataFrame) -> Iterator:
     """Iterates over all indices for rows in a dataframe."""
     return iter(range(len(dataset)))
-# test_make_entry_iterator_df = make_entry_iterator(pd.DataFrame({'c1': [10, 11, 12], 'c2': [100, 110, 120]}))
+# test_make_idx_iter_df = make_idx_iter(pd.DataFrame({'c1': [10, 11, 12], 'c2': [100, 110, 120]}))
+
+@make_loc_iter.register
+def _(entry: pd.Series) -> Iterator:
+    """Iterates over the names of a pandas Series."""
+    return iter(entry.index)
+# test_make_loc_iter_series = make_loc_iter(pd.DataFrame({'c1': [10, 11, 12], 'c2': [100, 110, 500]}).iloc[0])
 
 @make_loc_iter.register
 def _(entry: dict) -> Iterator:
@@ -25,13 +31,7 @@ def _(entry: dict) -> Iterator:
         else:
             yield path
     return _recurse(entry, [])
-# test_make_location_iterator_dict = make_location_iterator({'c1': 10, 'c2': 100, 'c3': {'c3_1': [3, 4, 500]}})
-
-@make_loc_iter.register
-def _(entry: pd.Series) -> Iterator:
-    """Iterates over a pandas Series and returns the next column name."""
-    return iter(entry.index)
-# test_make_location_iterator_series = make_location_iterator(pd.DataFrame({'c1': [10, 11, 12], 'c2': [100, 110, 500]}).iloc[0])
+# test_make_loc_iter_dict = make_loc_iter({'c1': 10, 'c2': 100, 'c3': {'c3_1': [3, 4, 500]}})
 
 @get_entry.register
 def _(dataset: pd.DataFrame, idx: int) -> pd.Series:
@@ -56,13 +56,15 @@ def _(entry: pd.Series, location: str) -> Any:
     return entry[location]
 # test_get_value_series = get_value(pd.DataFrame({'c1': [10, 11, 12], 'c2': [100, 110, 500]}).iloc[0], 'c2')
 
-def identify(lookup_json: 'list[dict]', target_idx: int, target_entry_df: pd.Series) -> 'Tuple[int, pd.Series]':
+def identify(lookup_json: 'list[dict]', target_idx: int, target_entry_df: pd.Series) -> 'Tuple[int, dict]':
     """Dummy identification function that just returns the same row in the lookup dataset (a list of dicts) as the index of the target entry.
 
     Parameters
     ----------
     lookup_json : list[dict]
         The lookup list of dicts.
+    target_idx : int
+        The index of the target entry in the target dataset.
     target_entry : pd.Series
         The target row.
 
