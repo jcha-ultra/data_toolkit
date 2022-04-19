@@ -17,7 +17,7 @@ See ``data_tracer_demo.py`` for examples of how to define these functions.
 
 from functools import singledispatch
 from itertools import product
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterator, Tuple
 import pandas as pd
 
 # @singledispatch
@@ -110,7 +110,7 @@ def get_value(entry: Any, location: Any) -> Any:
     """
     raise NotImplementedError('get_value is not implemented for the given type: {}'.format(type(entry)))
 
-def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any], Any]', is_match: 'Callable[[Any, Any], bool]') -> pd.DataFrame:
+def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', is_match: 'Callable[[Any, Any, Any, Any], Tuple[bool, str]]') -> pd.DataFrame:
     """Given two datasets, return a dataframe of location pairs and matching entry numbers for each pair.
 
     Parameters
@@ -121,7 +121,7 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any], Any]', is_ma
         The dataset where the information in `target` will be looked up.
     identify : Callable[[Any, Any, Any], Any]
         A function that can be used to identify entries from the target dataset with entries in the lookup dataset.
-    is_match : Callable[[Any, Any], bool]
+    is_match : Callable[[Any, Any, Any, Any], Tuple[bool, str]]
         A function that can be used to check if the values at two locations are considered equal.
 
     Returns
@@ -129,7 +129,7 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any], Any]', is_ma
     DataFrame
         A dataframe of location pairs and matching entry numbers for each pair.
     """
-    matches = pd.DataFrame(columns=['target_location', 'target_idx', 'target_value', 'lookup_location', 'lookup_idx', 'lookup_value'])
+    matches = pd.DataFrame(columns=['target_location', 'target_idx', 'target_value', 'lookup_location', 'lookup_idx', 'lookup_value', 'match_note'])
     indices = make_idx_iter(target)
     # entries = make_entry_iterator(target)
     for target_idx in indices:
@@ -141,6 +141,7 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any], Any]', is_ma
             for target_location, lookup_location in product(target_locations, lookup_locations):
                 target_value = get_value(target_entry, target_location)
                 lookup_value = get_value(lookup_entry, lookup_location)
-                if is_match(target_value, lookup_value, target_location, lookup_location):
-                    matches.loc[len(matches)] = [target_location, target_idx, target_value, lookup_location, lookup_idx, lookup_value]
+                has_matched, match_note = is_match(target_value, lookup_value, target_location, lookup_location)
+                if has_matched:
+                    matches.loc[len(matches)] = [target_location, target_idx, target_value, lookup_location, lookup_idx, lookup_value, match_note]
     return matches

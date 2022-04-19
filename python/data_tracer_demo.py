@@ -76,7 +76,7 @@ def identify(lookup_json: 'list[dict]', target_idx: int, target_entry_df: pd.Ser
 
 target = pd.DataFrame({'c1': [10, 11, 12], 'c2': [100, 110, 500]})
 lookup = [{'c1': 10, 'c2': 100}, {'c1': 11, 'c2': 110}, {'c1': 12, 'c2': 120, 'c3': {'c3_1': 500}}]
-is_match = lambda x, y, *args: x == y
+is_match = lambda x, y, *args: (x == y, 'Placeholder note!')
 
 def main():
     test_trace = trace(target, lookup, identify, is_match)
