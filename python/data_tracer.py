@@ -21,23 +21,6 @@ import sys
 from typing import Any, Callable, Iterator, Tuple
 import pandas as pd
 
-# @singledispatch
-# def make_entry_iterator(dataset: Any) -> Iterator:
-#     """Given a dataset, return an iterator that can be used to iterate over all entries in the dataset.
-#     - This will be used by the `trace` function to navigate across all entries in the dataset.
-
-#     Parameters
-#     ----------
-#     dataset : Any
-#         The dataset to be iterated over.
-
-#     Returns
-#     -------
-#     Iterator
-#         An iterator that can be used to iterate over all entries in the dataset.
-#     """
-#     raise NotImplementedError('make_entry_iterator is not implemented for the given type: {}'.format(type(dataset)))
-
 @singledispatch
 def make_idx_iter(dataset: Any) -> Iterator:
     """Given a dataset, return an iterator that can be used to iterate over all desired indices in the dataset.
@@ -134,7 +117,6 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
     """
     matches = pd.DataFrame(columns=['target_location', 'target_idx', 'target_value', 'lookup_location', 'lookup_idx', 'lookup_value', 'note'])
     indices = make_idx_iter(target)
-    # entries = make_entry_iterator(target)
     for target_idx in indices:
         try:
             target_entry = get_entry(target, target_idx)
@@ -162,30 +144,24 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
     print(f"Successfully found {len(matches)} potential matching values across {len(indices)} entries in the target dataset.")
     return matches
 
-def collect_samples(target: Any, conditions: 'list[Callable[[pd.DataFrame], bool]]', sample_idx_iter: Iterator=None, help_data: Any=None) -> list:
+def collect_samples(dataset: Any, conditions: 'list[Callable[[pd.DataFrame], bool]]', sample_idx_iter: Iterator=None, help_data: Any=None) -> list[Any]:
     """Given a dataframe of matching entries, return a set of sample values such that all of the conditions are fulfilled.
 
     Parameters
     ----------
-    target : Any
-        The dataset to be traced. All traversible entries in this dataset (defined via the `traverse` function) will be traced.
-    lookup : Any
-        The dataset where the information in `target` will be looked up.
-    identify : Callable[[Any, Any, Any], Any]
-        A function that can be used to identify entries from the target dataset with entries in the lookup dataset.
-    matches : DataFrame
-        A dataframe of location pairs and matching entry numbers for each pair, such as the output from the `trace` function.
+    dataset : Any
+        The dataset to be sampled.
+    sample_idx_iter : Iterator, optional
+        An iterator that can be used to iterate over all indices in the target dataset.
     conditions : list
         A list of conditions that must be fulfilled by the sample in order for sample collection to be complete. Each condition will be run on the sample set.
-    sample_entry_iter : Iterator, optional
-        An iterator for the target for getting to the next sample to add to the collection; if `None` is used, then it will use the standard iterator as defined by the `make_idx_iter` function.
     help_data : Any, optional
         Any additional data that can be used to determine whether the conditions pass or not.
 
     Returns
     -------
-    list
-        A list of indices from the target dataset that satisfy all of the conditions.
+    list[Any]
+        A list of indices from the target dataset that satisfies all of the conditions.
     """
 
     if sample_idx_iter is None:
