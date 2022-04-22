@@ -161,3 +161,54 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
             print(f"Error tracing targe entry {target_idx} due to unhandled exception. Skipping.")
     print(f"Successfully found {len(matches)} potential matching values across {len(indices)} entries in the target dataset.")
     return matches
+
+def collect_samples(target: Any, conditions: 'list[Callable[[pd.DataFrame], bool]]', sample_idx_iter: Iterator=None, help_data: Any=None) -> list:
+    """Given a dataframe of matching entries, return a set of sample values such that all of the conditions are fulfilled.
+
+    Parameters
+    ----------
+    target : Any
+        The dataset to be traced. All traversible entries in this dataset (defined via the `traverse` function) will be traced.
+    lookup : Any
+        The dataset where the information in `target` will be looked up.
+    identify : Callable[[Any, Any, Any], Any]
+        A function that can be used to identify entries from the target dataset with entries in the lookup dataset.
+    matches : DataFrame
+        A dataframe of location pairs and matching entry numbers for each pair, such as the output from the `trace` function.
+    conditions : list
+        A list of conditions that must be fulfilled by the sample in order for sample collection to be complete. Each condition will be run on the sample set.
+    sample_entry_iter : Iterator, optional
+        An iterator for the target for getting to the next sample to add to the collection; if `None` is used, then it will use the standard iterator as defined by the `make_idx_iter` function.
+    help_data : Any, optional
+        Any additional data that can be used to determine whether the conditions pass or not.
+
+    Returns
+    -------
+    list
+        A list of indices from the target dataset that satisfy all of the conditions.
+    """
+
+    if sample_idx_iter is None:
+        sample_idx_iter = make_idx_iter(target)
+
+    samples = []
+
+    def conditions_passed() -> bool:
+        """Given a sample, check if all of the conditions are fulfilled."""
+        for num, condition in enumerate(conditions):
+            try:
+                if len(samples) == 0 or not condition(samples, help_data):
+                    return False
+            except:
+                print(f"Error: {sys.exc_info()[0]}. {sys.exc_info()[1]}, line: {sys.exc_info()[2].tb_lineno}")
+                print(f"Error checking condition {num}. Discarding last sample.")
+                samples.pop()
+                return False
+        return True
+
+    # If the conditions are not fulfilled, then add the next sample to the collection and check again.
+    for target_idx in sample_idx_iter:
+        if conditions_passed():
+            return samples
+        samples.append(target_idx)
+    
