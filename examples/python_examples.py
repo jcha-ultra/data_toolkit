@@ -40,6 +40,12 @@ says(sound=None)
 
 ########################################################################################################################
 
+# string formatting
+value = 2
+f"{value}"
+
+########################################################################################################################
+
 # Extracts features from text using BERT, to be used for fine tuning. Adapted from https://huggingface.co/bert-base-uncased
 def get_text_features(text):
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
