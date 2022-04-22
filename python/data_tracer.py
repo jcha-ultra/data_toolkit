@@ -74,7 +74,7 @@ def get_entry(dataset: Any, idx: Any) -> Any:
     Any
         The entry at the given index.
     """
-    raise NotImplementedError('get_entry is not implemented for the given type: {}'.format(type(dataset)))
+    raise NotImplementedError('`get_entry` is not implemented for the given type: {}'.format(type(dataset)))
 
 @singledispatch
 def get_value(entry: Any, location: Any) -> Any:
@@ -92,7 +92,7 @@ def get_value(entry: Any, location: Any) -> Any:
     Any
         The value at the location.
     """
-    raise NotImplementedError('get_value is not implemented for the given type: {}'.format(type(entry)))
+    raise NotImplementedError('`get_value` is not implemented for the given type: {}'.format(type(entry)))
 
 def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', is_match: 'Callable[[Any, Any, Any, Any], Tuple[bool, str]]', analytics: 'list[Callable[[Any, Any, Any, Any], Any]]' ) -> pd.DataFrame:
     """Given two datasets, return a dataframe of location pairs and matching entry numbers for each pair.
@@ -144,17 +144,17 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
     print(f"Successfully found {len(matches)} potential matching values across {len(indices)} entries in the target dataset.")
     return matches
 
-def collect_samples(dataset: Any, conditions: 'list[Callable[[pd.DataFrame], bool]]', sample_idx_iter: Iterator=None, help_data: Any=None) -> list[Any]:
+def collect_samples(dataset: Any, conditions: 'list[Callable[[list, Any], bool]]', idx_iter: Iterator=None, help_data: Any=None) -> list[Any]:
     """Given a dataframe of matching entries, return a set of sample values such that all of the conditions are fulfilled.
 
     Parameters
     ----------
     dataset : Any
         The dataset to be sampled.
-    sample_idx_iter : Iterator, optional
-        An iterator that can be used to iterate over all indices in the target dataset.
     conditions : list
         A list of conditions that must be fulfilled by the sample in order for sample collection to be complete. Each condition will be run on the sample set.
+    idx_iter : Iterator, optional
+        An iterator that can be used to iterate over all indices in the target dataset.
     help_data : Any, optional
         Any additional data that can be used to determine whether the conditions pass or not.
 
@@ -164,27 +164,39 @@ def collect_samples(dataset: Any, conditions: 'list[Callable[[pd.DataFrame], boo
         A list of indices from the target dataset that satisfies all of the conditions.
     """
 
-    if sample_idx_iter is None:
-        sample_idx_iter = make_idx_iter(target)
+    if idx_iter is None:
+        idx_iter = make_idx_iter(dataset)
 
-    samples = []
-
-    def conditions_passed() -> bool:
-        """Given a sample, check if all of the conditions are fulfilled."""
+    sample_idxes = []
+    pass_count = 0
+    def find_pass_count(indices) -> int:
+        """Given an index under consideration, figure out the number of consecutive passes if you were to include it in the sample."""
+        nonlocal pass_count
+        current_pass_count = 0
         for num, condition in enumerate(conditions):
             try:
-                if len(samples) == 0 or not condition(samples, help_data):
-                    return False
+                if condition(indices, help_data):
+                    current_pass_count += 1
+                else:
+                    break
             except:
                 print(f"Error: {sys.exc_info()[0]}. {sys.exc_info()[1]}, line: {sys.exc_info()[2].tb_lineno}")
-                print(f"Error checking condition {num}. Discarding last sample.")
-                samples.pop()
-                return False
-        return True
+                print(f"Error checking condition {num} while checking sample with index {next_idx}. Discarding sample.")
+                return -1
+        return current_pass_count
 
-    # If the conditions are not fulfilled, then add the next sample to the collection and check again.
-    for target_idx in sample_idx_iter:
-        if conditions_passed():
-            return samples
-        samples.append(target_idx)
+    # Add sample indices until all conditions are met, including indices that don't immediately improve the passing rate.
+    # The reason is that a single condition may require multiple samples to be added before passing.
+    while pass_count < len(conditions):
+        next_idx = next(idx_iter)
+        new_pass_count = find_pass_count(sample_idxes + [next_idx])
+        if new_pass_count >= pass_count:
+            sample_idxes.append(next_idx)
+            pass_count = new_pass_count
     
+    # Remove any indices added that aren't needed after all
+    for idx_to_remove in sample_idxes:
+        if pass_count == find_pass_count([idx for idx in sample_idxes if idx != idx_to_remove]):
+            sample_idxes.remove(idx_to_remove)
+
+    return sample_idxes
