@@ -17,6 +17,7 @@ See ``data_tracer_demo.py`` for examples of how to define these functions.
 
 from functools import singledispatch
 from itertools import product
+import sys
 from typing import Any, Callable, Iterator, Tuple
 import pandas as pd
 
@@ -133,15 +134,26 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
     indices = make_idx_iter(target)
     # entries = make_entry_iterator(target)
     for target_idx in indices:
-        target_entry = get_entry(target, target_idx)
-        lookup_idx, lookup_entry = identify(lookup, target_idx, target_entry)
-        if lookup_entry:
+        try:
+            target_entry = get_entry(target, target_idx)
+            lookup_idx, lookup_entry = identify(lookup, target_idx, target_entry)
             target_locations = make_loc_iter(target_entry)
             lookup_locations = make_loc_iter(lookup_entry)
             for target_location, lookup_location in product(target_locations, lookup_locations):
-                target_value = get_value(target_entry, target_location)
-                lookup_value = get_value(lookup_entry, lookup_location)
-                has_matched, match_note = is_match(target_value, lookup_value, target_location, lookup_location)
-                if has_matched:
-                    matches.loc[len(matches)] = [target_location, target_idx, target_value, lookup_location, lookup_idx, lookup_value, match_note]
+                try:
+                    target_value = get_value(target_entry, target_location)
+                    lookup_value = get_value(lookup_entry, lookup_location)
+                    has_matched, match_note = is_match(target_value, lookup_value, target_location, lookup_location)
+                    if has_matched:
+                        matches.loc[len(matches)] = [target_location, target_idx, target_value, lookup_location, lookup_idx, lookup_value, match_note]
+                except:
+                    print(f"Error: {sys.exc_info()[0]}. {sys.exc_info()[1]}, line: {sys.exc_info()[2].tb_lineno}")
+                    print(f"Error tracing lookup location {lookup_location} while on target location {target_location} and index {target_idx}")
+        except KeyboardInterrupt:
+            print('Data trace interrupted by user. Returning partial results.')
+            return matches
+        except:
+            print(f"Error: {sys.exc_info()[0]}. {sys.exc_info()[1]}, line: {sys.exc_info()[2].tb_lineno}")
+            print(f"Error tracing targe entry {target_idx} due to unhandled exception. Skipping.")
+    print(f"Successfully found {len(matches)} potential matching values across {len(indices)} entries in the target dataset.")
     return matches
