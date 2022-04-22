@@ -111,7 +111,7 @@ def get_value(entry: Any, location: Any) -> Any:
     """
     raise NotImplementedError('get_value is not implemented for the given type: {}'.format(type(entry)))
 
-def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', is_match: 'Callable[[Any, Any, Any, Any], Tuple[bool, str]]') -> pd.DataFrame:
+def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', is_match: 'Callable[[Any, Any, Any, Any], Tuple[bool, str]]', analytics: 'list[Callable[[Any, Any, Any, Any], Any]]' ) -> pd.DataFrame:
     """Given two datasets, return a dataframe of location pairs and matching entry numbers for each pair.
 
     Parameters
@@ -124,6 +124,8 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
         A function that can be used to identify entries from the target dataset with entries in the lookup dataset.
     is_match : Callable[[Any, Any, Any, Any], Tuple[bool, str]]
         A function that can be used to check if the values at two locations are considered equal.
+    analytics : list[Callable[[Any, Any, Any, Any], Any]]
+        A list of functions that can be used to perform additional analysis on the entries.
 
     Returns
     -------
@@ -143,6 +145,8 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
                 try:
                     target_value = get_value(target_entry, target_location)
                     lookup_value = get_value(lookup_entry, lookup_location)
+                    for analyze in analytics:
+                        analyze(target_idx, target_entry, target_location, target_value)
                     has_matched, match_note = is_match(target_value, lookup_value, target_location, lookup_location)
                     if has_matched:
                         matches.loc[len(matches)] = [target_location, target_idx, target_value, lookup_location, lookup_idx, lookup_value, match_note]
