@@ -132,7 +132,7 @@ def trace(target: Any, lookup: Any, identify: 'Callable[[Any, Any, Any], Any]', 
     DataFrame
         A dataframe of location pairs and matching entry numbers for each pair.
     """
-    matches = pd.DataFrame(columns=['target_location', 'target_idx', 'target_value', 'lookup_location', 'lookup_idx', 'lookup_value', 'match_note'])
+    matches = pd.DataFrame(columns=['target_location', 'target_idx', 'target_value', 'lookup_location', 'lookup_idx', 'lookup_value', 'note'])
     indices = make_idx_iter(target)
     # entries = make_entry_iterator(target)
     for target_idx in indices:
