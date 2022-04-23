@@ -1,3 +1,4 @@
+"""This is an idea for creating a system for figuring out how to navigate between a potentially heterogenous set of requirements in an automated way."""
 
 from random import random
 from typing import Any, Callable, Tuple
@@ -16,47 +17,6 @@ class RequirementInfo:
     @property
     def priority(self) -> int:
         return self.importance * ((1-self.satisfaction)/(4*self.satisfaction+1)) * self.ease
-
-def test_less_1k(n):
-    if n < 1000:
-        satisfaction = 1
-    else:
-        satisfaction = 999/n
-    proposal = lambda n: n if n < 1000 else int(n/2 - 50*random())
-    return satisfaction, proposal
-
-def test_is_odd(n):
-    if n % 2 == 1:
-        satisfaction = 1
-    else:
-        satisfaction = 0
-    proposal = lambda n: n if n % 2 == 1 else n+1
-    return satisfaction, proposal
-
-def ends_with_3(n):
-    if n % 10 == 3:
-        satisfaction = 1
-    else:
-        satisfaction = 0
-    proposal = lambda n: n if n % 10 == 3 else n + 13 - (n % 10)
-    return satisfaction, proposal
-
-def is_large(n):
-    satisfaction = max(0, (n-1)/(n))
-    proposal = lambda n: int(n*1.5 * (random()+1))
-    return satisfaction, proposal
-
-def test_is_prime(n):
-    def is_prime(n):
-        if n < 2:
-            return False
-        for i in range(2, int(np.sqrt(n))+1):
-            if n % i == 0:
-                return False
-        return True
-    satisfaction = 1 if is_prime(n) else 0
-    proposal = lambda n: n if is_prime(n) else int(n+10*random())
-    return satisfaction, proposal
 
 def is_satisfied(requirement_tracker: list[RequirementInfo]) -> bool:
     """Determines whether all of the requirements in the tracker are satisfied.
@@ -181,4 +141,46 @@ def apply_requirements(requirements: list[Callable[[Any], Tuple[float, Callable[
 
     return state, {info.id: info.satisfaction for info in requirement_tracker}
 
-# test_apply_requirements = apply_requirements([test_is_prime, test_less_1k, test_is_odd, ends_with_3], 2000, [1, 1, 1, 1], 10000)
+def test_apply_requirements():
+    """A Test function for `apply_requirements`."""
+    def test_less_1k(n):
+        if n < 1000:
+            satisfaction = 1
+        else:
+            satisfaction = 999/n
+        proposal = lambda n: n if n < 1000 else int(n/2 - 50*random())
+        return satisfaction, proposal
+
+    def test_is_odd(n):
+        if n % 2 == 1:
+            satisfaction = 1
+        else:
+            satisfaction = 0
+        proposal = lambda n: n if n % 2 == 1 else n+1
+        return satisfaction, proposal
+
+    def ends_with_3(n):
+        if n % 10 == 3:
+            satisfaction = 1
+        else:
+            satisfaction = 0
+        proposal = lambda n: n if n % 10 == 3 else n + 13 - (n % 10)
+        return satisfaction, proposal
+
+    def is_large(n):
+        satisfaction = max(0, (n-1)/(n))
+        proposal = lambda n: int(n*1.5 * (random()+1))
+        return satisfaction, proposal
+
+    def test_is_prime(n):
+        def is_prime(n):
+            if n < 2:
+                return False
+            for i in range(2, int(np.sqrt(n))+1):
+                if n % i == 0:
+                    return False
+            return True
+        satisfaction = 1 if is_prime(n) else 0
+        proposal = lambda n: n if is_prime(n) else int(n+10*random())
+        return satisfaction, proposal
+    return apply_requirements([test_is_prime, test_less_1k, test_is_odd, ends_with_3], 2000, [1, 1, 1, 1], 10000)
