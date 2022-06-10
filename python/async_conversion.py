@@ -47,6 +47,6 @@ async def main():
     """
     await asyncio.gather(*[io_op(i) for i in range(5)])
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
     asyncio.run(main())
     # await main() # use this instead when running in Jupyter
