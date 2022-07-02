@@ -1,5 +1,10 @@
 """This is an idea for creating a system for figuring out how to navigate between a potentially heterogenous set of requirements in an automated way."""
 
+
+
+# > idea: have option to poll a certain proportion of the requirements
+# > idea: reduce priority once requirement has no further ideas to add (update ease to bias)
+
 from random import random
 from typing import Any, Callable, Tuple
 
@@ -118,6 +123,7 @@ def apply_requirements(requirements: list[Callable[[Any], Tuple[float, Callable[
     while(not is_satisfied(requirement_tracker) and stalemate_count < stalemate_threshold):
         # track whether the rating improvement process has stalled
         current_satisfaction = get_satisfaction(requirement_tracker)
+        new_satisfaction = current_satisfaction
 
         print(stalemate_count, state)
 
