@@ -1,1 +1,0 @@
-Acquired from Kaggle's Titanic competition page: https://www.kaggle.com/c/titanic

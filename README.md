@@ -1,1 +1,1 @@
-A repository for various tools I use.
+A repository for various tools.
