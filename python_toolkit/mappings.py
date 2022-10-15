@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any, Union
 
 
 def flatten_dict(d: 'Union[dict, list[dict]]') -> dict:
@@ -20,3 +20,17 @@ def flatten_dict(d: 'Union[dict, list[dict]]') -> dict:
         else:
             result[(k,)] = v
     return result
+
+def get_key_value(vals: "Union[dict, list, tuple]", key_path: tuple) -> Any:
+    """
+    Get a value from a nested dictionary, list, or tuple at a certain path.
+
+    >>> get_key_value({'a': 1, 'b': [2, 3, 4], 'c': {'d': 5}}, ('c', 'd'))
+    5
+    """
+    if not key_path:
+        return vals
+    try:
+        return get_key_value(vals[key_path[0]], key_path[1:])
+    except (KeyError, IndexError):
+        return None
