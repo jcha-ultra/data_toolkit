@@ -129,9 +129,7 @@ def demo():
     )
     func_draft = results.code
     print(func_draft)
-    breakpoint()
 
 
-# os.environ["OPENAI_API_KEY"] = "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"
 if __name__ == "__main__":
     demo()
