@@ -103,14 +103,12 @@ def demo():
     """Demo the function drafting process using ."""
     from langchain.llms import OpenAI
 
-
     # Set up the OpenAI API key in the environment, if needed
     # os.environ["OPENAI_API_KEY"] = "<your key>"
 
     # If the key is not set, the code will raise an error
     if "OPENAI_API_KEY" not in os.environ:
         raise ValueError("Please set the OpenAI API key as an environment variable.")
-
 
     function_name = "prime"
     functionality = "Generate the nth prime number. This function is efficient for large values of n."
