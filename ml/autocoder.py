@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import os
 from typing import Protocol
 
-from assistants import BasicAssistant
+from assistants import BasicOpenAIAssistant
 
 
 class Assistant(Protocol):
