@@ -18,7 +18,9 @@ def demo():
 
     # If the key is not set, the code will raise an error
     if "OPENAI_API_KEY" not in os.environ:
-        raise ValueError("Please set the OpenAI API key as an environment variable.")
+        raise ValueError(
+            "Please set the OpenAI API key as an environment variable called `OPENAI_API_KEY`."
+        )
 
     # function_name = "fibonacci"
     # functionality = "generates the nth fibonacci number"
@@ -34,7 +36,6 @@ def demo():
     )
     func_draft = results.code
     print(func_draft)
-
 
 
 if __name__ == "__main__":
