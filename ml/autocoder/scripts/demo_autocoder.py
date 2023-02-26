@@ -3,11 +3,10 @@
 import os
 import sys
 
-sys.path.append('')
+sys.path.append("")
 
 from ml.assistants import BasicAssistant
 from ml.autocoder.drafting import draft_function
-
 
 
 def demo():
@@ -37,7 +36,6 @@ def demo():
     print(func_draft)
 
 
-os.environ["OPENAI_API_KEY"] = "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"
 
 if __name__ == "__main__":
     demo()
