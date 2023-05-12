@@ -8,7 +8,7 @@ import functools, pickle, os
 from logging import getLogger
 from pathlib import Path
 from typing import Any, Callable
-from python_toolkit.hashing import stable_hash
+from python.hashing import stable_hash
 
 
 logger = getLogger(__name__)
