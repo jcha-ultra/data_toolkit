@@ -1,0 +1,10 @@
+I need to refactor this <language> code that I got, which could use some improvement:
+```
+<code>
+```
+
+Please do the following:
+1. Analyze the code and list out improvements that can be made so that the code adheres with standard python best practices.
+2. Pick out specific changes from the list of improvements that can be made without breaking the code, and without any additional context.
+3. Refactor the code with the changes you analyzed above.
+4. List out any improvements from step 1 that you DIDN'T make, but can be made with further context. Give suggestions on possible approaches and considerations to take.

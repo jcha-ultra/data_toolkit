@@ -1,1 +1,1 @@
-A repository for various tools.
+A collection of various code snippets.
