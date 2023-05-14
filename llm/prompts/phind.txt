@@ -1,0 +1,9 @@
+Enables Phind to output images sometimes.
+
+"""
+<Request>
+
+Provide relevant images to help the explanation using the following formatting: ![alt text](image address)
+
+Do not include .gif images.
+"""

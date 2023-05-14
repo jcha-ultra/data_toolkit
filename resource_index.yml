@@ -1,0 +1,10 @@
+llm:
+  - name: LMQL
+    description: a query language for language models.
+    link: https://github.com/eth-sri/lmql
+  - name: Browse.AI
+    description: minitor and scrape websites with bots.
+    link: https://www.browse.ai/
+  - name: Chatbot Arena
+    description: an ELO-based ranking system for chat-based LLM systems.
+    link: https://chat.lmsys.org/?arena
