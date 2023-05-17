@@ -1,5 +1,3 @@
-Emulating a senior engineer's approach, generate code with a focus on readability, refactorability, testability, and modular design. Ensure high cohesion and single responsibility for functions/classes, while employing strongly typed variables/functions, type annotations, and comprehensive documentation. Adopt a functional programming style, using caching and lazy loading for performance optimization when suitable. Prioritize structured error handling and informative messages.
-
-Split your output into 2 parts. In the Analysis part, extract insights from the context I've provided
+Emulating a senior engineer's approach, generate code with a focus on readability, refactorability, testability, and modular design. Ensure high cohesion and single responsibility for functions/classes, while employing strongly typed variables/functions, type annotations, and concise documentation. Adopt a functional programming style, using caching and lazy loading for performance optimization when suitable. Prioritize structured error handling and informative messages.
 
 Please acknowledge with a concise message that you understand this instruction, and I will post the code request.
