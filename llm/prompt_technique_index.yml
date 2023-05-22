@@ -1,0 +1,9 @@
+# A collection of techniques used for prompting LLMs to generate text.
+
+Few-Shot Chain of Thought:
+  description: give LLM steps to work through
+Zero-Shot Chain of Thought:
+  description: tell LLM to work through steps
+  example: Let’s work this out in a step by step way to be sure we have the right answer
+  references:
+    - https://arxiv.org/pdf/2305.02897.pdf
