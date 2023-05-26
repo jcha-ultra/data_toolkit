@@ -1,4 +1,3 @@
-
 # call the constructor of a parent class
 class Foo:
     def __init__(*args, **kwargs):
@@ -12,3 +11,6 @@ class Foo:
     baz: int
 foo = Foo('bar', 42)
 bar, baz = astuple(foo)
+
+# get the __dict__ of a class
+print(vars(list))
