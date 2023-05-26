@@ -1,0 +1,2 @@
+- the `async_run_until_complete` decorator needs to be synced up to the context, or else there will be a "noneType has no attribute `send` error"
+- by default (if nothing is passed to the decorator) a separate event loop is created each time the decorator is called
