@@ -34,3 +34,13 @@ def get_key_value(vals: "Union[dict, list, tuple]", key_path: tuple) -> Any:
         return get_key_value(vals[key_path[0]], key_path[1:])
     except (KeyError, IndexError):
         return None
+
+
+# use `defaultdict` to create a dictionary with default values
+from collections import defaultdict
+
+d = defaultdict(list)
+# since the default value here is a list, you can append to it without explicitly creating an empty list first
+d["a"].append(1)
+d["a"].append(2)
+print(d)  # defaultdict(<class 'list'>, {'a': [1, 2]})
