@@ -1,0 +1,42 @@
+- name: LMQL
+  description: a query language for language models.
+  links:
+    - https://github.com/eth-sri/lmql
+- name: Browse.AI
+  description: minitor and scrape websites with bots.
+  links:
+    - https://www.browse.ai/
+- name: Chatbot Arena
+  description: an ELO-based ranking system for chat-based LLM systems.
+  links:
+    - https://chat.lmsys.org/?arena
+- name: InfraNodus
+  description: generate idea graphs and manipulate them with LLMs.
+  links:
+    - https://infranodus.com/
+- name: PandasAI
+  description: use natural language to query pandas dataframes.
+  links:
+    - https://github.com/gventuri/pandas-ai
+- name: ChatGPT Prompt Engineering for Developers
+  description: a course on how to use OpenAI's LLM APIs for prompt engineering.
+  notes:
+    - introduces key concepts of prompt engineering
+    - very basic
+  links:
+    - https://learn.deeplearning.ai/chatgpt-prompt-eng/lesson/1/introduction
+  tags: [course]
+- name: "GPTeam: Collaborative AI Agents"
+  description: 'open-source implementation of the "Generative Agents: Interactive Simulacra of Human Behavior" paper.'
+  links:
+    - https://arxiv.org/pdf/2304.03442.pdf
+    - https://github.com/101dotxyz/GPTeam
+- name: BacterAI
+  description: an agent that can autonomously conduct experiments on bacteria and self-optimize its processes.
+  links:
+    - https://github.com/jensenlab/BacterAI
+  tags: [paper]
+- name: Goblin Tools
+  description: a miscellaneous collection of AI tools for various tasks.
+  links:
+    - https://goblin.tools/
