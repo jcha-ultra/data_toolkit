@@ -1,7 +1,7 @@
 from typing import Any, Union
 
 
-def flatten_dict(d: 'Union[dict, list[dict]]') -> dict:
+def flatten_dict(d: "Union[dict, list[dict]]") -> dict:
     """
     Flatten a dictionary or list of dictionaries so that all keys are tuples at the top level.
 
@@ -20,6 +20,7 @@ def flatten_dict(d: 'Union[dict, list[dict]]') -> dict:
         else:
             result[(k,)] = v
     return result
+
 
 def get_key_value(vals: "Union[dict, list, tuple]", key_path: tuple) -> Any:
     """
